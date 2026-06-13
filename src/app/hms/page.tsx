@@ -12,9 +12,9 @@ import {
   Plus,
   ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { NyttAvvikDialog } from "@/components/hms/NyttAvvikDialog";
 
 const areaIcons: Record<string, typeof Flame> = {
   brann: Flame,
@@ -72,10 +72,7 @@ export default async function HmsPage() {
             Helse, miljø og sikkerhet · Internkontroll iht. forskriften §5
           </p>
         </div>
-        <Button className="bg-violet-600 hover:bg-violet-500 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Nytt avvik
-        </Button>
+        <NyttAvvikDialog areas={areas.map(a => ({ id: a.id, name: a.name }))} />
       </div>
 
       {/* Stats */}

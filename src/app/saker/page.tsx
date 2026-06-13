@@ -9,8 +9,8 @@ import {
   Archive,
   ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NySakDialog } from "@/components/saker/NySakDialog";
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
   ny: { label: "Ny", color: "bg-blue-500/20 text-blue-400", icon: Clock },
@@ -51,10 +51,7 @@ export default async function SakerPage() {
             {activeCases.length} aktive saker{archivedCount > 0 ? ` · ${archivedCount} arkivert` : ""}
           </p>
         </div>
-        <Button className="bg-violet-600 hover:bg-violet-500 text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Ny sak
-        </Button>
+        <NySakDialog />
       </div>
 
       {/* Cases List */}
