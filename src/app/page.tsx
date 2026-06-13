@@ -15,27 +15,12 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
+import { getGreeting, daysUntil, roleLabels } from "@/lib/config";
 
 export default async function Dashboard() {
-  const supabase = await createClient();
-
-  // Hent innlogget bruker
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  // Hent profil
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*, tenants(*)")
-    .eq("user_id", user.id)
-    .eq("role", "styreleder")
-    .single();
-
-  const tenantId = profile?.tenant_id;
-  const firstName = profile?.full_name?.split(" ")[0] || "Bruker";
-  const tenantName = (profile as any)?.tenants?.name || "Ditt sameie";
+  const { supabase, tenantId, fullName, role, tenantName } = await getAuthContext();
+  const firstName = fullName?.split(" ")[0] || "Bruker";
 
   // Hent live stats
   const [casesRes, deviationsRes, suggestionsRes, meetingRes, controlsRes, maintenanceRes, docsRes] = await Promise.all([
@@ -103,10 +88,10 @@ export default async function Dashboard() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-zinc-100">
-          {new Date().getHours() < 12 ? "God morgen" : new Date().getHours() < 17 ? "God dag" : "God kveld"}, {firstName}
+          {getGreeting()}, {firstName}
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
-          {tenantName} · {profile?.role === "styreleder" ? "Styreleder" : profile?.role}
+          {tenantName} · {roleLabels[role] || role}
         </p>
       </div>
 

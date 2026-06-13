@@ -1,57 +1,25 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
+import { caseStatusConfig, severityConfig, roleLabels, daysUntil, getInitials } from "@/lib/config";
 import {
-  Home,
-  FileText,
-  ShieldCheck,
-  AlertTriangle,
-  Clock,
-  CheckCircle2,
-  Calendar,
-  Users,
-  Building2,
-  ChevronRight,
+  Home, FileText, ShieldCheck, AlertTriangle,
+  CheckCircle2, Calendar, Users, Building2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
-const statusLabels: Record<string, string> = {
-  ny: "Ny",
-  under_behandling: "Under behandling",
-  vedtatt: "Vedtatt",
-  avvist: "Avvist",
-  utsatt: "Utsatt",
-};
-
-const severityLabels: Record<string, { label: string; color: string }> = {
-  lav: { label: "Lav", color: "bg-emerald-500/20 text-emerald-400" },
-  middels: { label: "Middels", color: "bg-amber-500/20 text-amber-400" },
-  hoy: { label: "Høy", color: "bg-red-500/20 text-red-400" },
-  kritisk: { label: "Kritisk", color: "bg-red-600/30 text-red-300" },
-};
-
 export default async function BeboerPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { supabase, tenantId, fullName, tenantName, profileId } = await getAuthContext();
+  const firstName = fullName?.split(" ")[0] || "Beboer";
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*, tenants(*)")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-
-  const tenantId = profile.tenant_id;
-  const tenant = (profile as any).tenants;
-  const firstName = profile.full_name?.split(" ")[0] || "Beboer";
+  // Hent tenant-detaljer for visning
+  const { data: tenantData } = await supabase.from("tenants").select("*").eq("id", tenantId).single();
+  const tenant = tenantData;
 
   // Hent beboerens boenhet
   const { data: unitOwnership } = await supabase
     .from("unit_owners")
     .select("*, units(*)")
-    .eq("profile_id", profile.id)
+    .eq("profile_id", profileId)
     .single();
 
   const unit = (unitOwnership as any)?.units;
@@ -99,7 +67,7 @@ export default async function BeboerPage() {
           Hei, {firstName}
         </h1>
         <p className="text-sm text-zinc-500 mt-1">
-          {tenant?.name || "Ditt sameie"} · Beboeroversikt
+          {tenantName} · Beboeroversikt
         </p>
       </div>
 
@@ -235,12 +203,8 @@ export default async function BeboerPage() {
                     </span>
                   </div>
                 </div>
-                <Badge variant="secondary" className={
-                  c.status === "under_behandling" ? "bg-amber-500/20 text-amber-400" :
-                  c.status === "vedtatt" ? "bg-emerald-500/20 text-emerald-400" :
-                  "bg-blue-500/20 text-blue-400"
-                }>
-                  {statusLabels[c.status] || c.status}
+                <Badge variant="secondary" className={(caseStatusConfig[c.status] || caseStatusConfig.ny).color}>
+                  {(caseStatusConfig[c.status] || caseStatusConfig.ny).label}
                 </Badge>
               </div>
             ))
@@ -262,10 +226,8 @@ export default async function BeboerPage() {
         {deviations && deviations.length > 0 ? (
           <div className="space-y-2">
             {deviations.map((dev) => {
-              const sev = severityLabels[dev.severity] || severityLabels.lav;
-              const daysLeft = dev.due_date
-                ? Math.ceil((new Date(dev.due_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-                : null;
+              const sev = severityConfig[dev.severity] || severityConfig.lav;
+              const days = daysUntil(dev.due_date);
 
               return (
                 <div
@@ -287,9 +249,9 @@ export default async function BeboerPage() {
                     <p className="text-sm font-medium text-zinc-200 truncate">{dev.title}</p>
                     <p className="text-xs text-zinc-500 mt-0.5">
                       {(dev as any).hms_areas?.name}
-                      {daysLeft !== null && (
-                        <span className={daysLeft < 0 ? " text-red-400" : ""}>
-                          {" · "}{daysLeft < 0 ? `${Math.abs(daysLeft)}d over frist` : `Frist om ${daysLeft}d`}
+                      {days !== null && (
+                        <span className={days < 0 ? " text-red-400" : ""}>
+                          {" · "}{days < 0 ? `${Math.abs(days)}d over frist` : `Frist om ${days}d`}
                         </span>
                       )}
                     </p>
@@ -322,18 +284,12 @@ export default async function BeboerPage() {
               className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex items-center gap-4"
             >
               <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-sm font-medium text-zinc-400 flex-shrink-0">
-                {member.full_name
-                  ?.split(" ")
-                  .map((n: string) => n[0])
-                  .join("")
-                  .substring(0, 2)
-                  .toUpperCase() || "?"}
+                {getInitials(member.full_name)}
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-zinc-200">{member.full_name}</p>
                 <p className="text-xs text-zinc-500">
-                  {member.role === "styreleder" ? "Styreleder" :
-                   member.role === "styremedlem" ? "Styremedlem" : "Varamedlem"}
+                  {roleLabels[member.role] || member.role}
                   {member.phone && ` · ${member.phone}`}
                 </p>
               </div>

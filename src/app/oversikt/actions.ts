@@ -1,7 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -14,23 +13,13 @@ interface ReportData {
 }
 
 export async function sendReportEmail(data: ReportData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tenant_id, full_name, tenants(name)")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!profile) return { error: "Profil ikke funnet" };
+  const { supabase, tenantId, fullName, tenantName } = await getAuthContext();
 
   // Hent alle styremedlemmer med e-post
   const { data: members } = await supabase
     .from("profiles")
     .select("full_name, email, role")
-    .eq("tenant_id", profile.tenant_id)
+    .eq("tenant_id", tenantId)
     .in("role", ["styreleder", "styremedlem", "varamedlem"])
     .not("email", "is", null);
 
@@ -40,8 +29,7 @@ export async function sendReportEmail(data: ReportData) {
     return { error: "Ingen styremedlemmer med registrert e-post" };
   }
 
-  const tenantName = (profile as any).tenants?.name || "Boligselskapet";
-  const senderName = profile.full_name || "Styret";
+  const senderName = fullName || "Styret";
   const today = new Date().toLocaleDateString("no-NO", {
     day: "numeric",
     month: "long",

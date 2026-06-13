@@ -1,35 +1,23 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
+import { roleLabels, formatDate, getInitials } from "@/lib/config";
 import { User, Building2, Shield, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ProfileForm } from "@/components/profil/ProfileForm";
 
 export default async function ProfilPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { supabase, userId, role } = await getAuthContext();
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("*, tenants(*)")
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .single();
 
-  if (!profile) redirect("/login");
+  if (!profile) return null;
 
   const tenant = (profile as any).tenants;
-  const memberSince = new Date(profile.created_at).toLocaleDateString("no-NO", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
-  const roleLabel =
-    profile.role === "styreleder" ? "Styreleder" :
-    profile.role === "styremedlem" ? "Styremedlem" :
-    profile.role === "varamedlem" ? "Varamedlem" :
-    profile.role === "vaktmester" ? "Vaktmester" :
-    profile.role === "beboer" ? "Beboer" : profile.role;
+  const memberSince = formatDate(profile.created_at, { day: "numeric", month: "long", year: "numeric" });
+  const roleLabel = roleLabels[role] || role;
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
@@ -46,12 +34,7 @@ export default async function ProfilPage() {
         <CardContent className="p-6">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
-              {profile.full_name
-                ?.split(" ")
-                .map((n: string) => n[0])
-                .join("")
-                .substring(0, 2)
-                .toUpperCase() || "?"}
+              {getInitials(profile.full_name)}
             </div>
             <div>
               <h2 className="text-lg font-semibold text-zinc-100">

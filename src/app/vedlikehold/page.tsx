@@ -1,30 +1,12 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
-import { Wrench, AlertTriangle, CheckCircle2, Clock, ClipboardList, TrendingUp, Calendar } from "lucide-react";
+import { getAuthContext } from "@/lib/auth";
+import { conditionConfig, taskStatusConfig, formatDate, isOverdue } from "@/lib/config";
+import { Wrench, AlertTriangle, CheckCircle2, Clock, ClipboardList, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NyttVedlikeholdDialog, NyOppgaveDialog, TaskStatusButton } from "@/components/vedlikehold/VedlikeholdDialogs";
 
-const conditionConfig: Record<string, { label: string; color: string; bg: string }> = {
-  god: { label: "God", color: "text-emerald-400", bg: "bg-emerald-500/20" },
-  akseptabel: { label: "Akseptabel", color: "text-amber-400", bg: "bg-amber-500/20" },
-  darlig: { label: "Dårlig", color: "text-red-400", bg: "bg-red-500/20" },
-  kritisk: { label: "Kritisk", color: "text-red-300", bg: "bg-red-600/30" },
-};
-
-const taskStatusConfig: Record<string, { label: string; color: string }> = {
-  ny: { label: "Ny", color: "bg-blue-500/20 text-blue-400" },
-  pagar: { label: "Pågår", color: "bg-amber-500/20 text-amber-400" },
-  ferdig: { label: "Ferdig", color: "bg-emerald-500/20 text-emerald-400" },
-};
-
 export default async function VedlikeholdPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase.from("profiles").select("id, tenant_id").eq("user_id", user.id).single();
-  const tenantId = profile!.tenant_id;
+  const { supabase, tenantId } = await getAuthContext();
 
   const [itemsRes, tasksRes] = await Promise.all([
     supabase.from("maintenance_items").select("*").eq("tenant_id", tenantId).order("next_maintenance_at"),

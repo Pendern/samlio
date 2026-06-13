@@ -1,13 +1,10 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export async function updateProfile(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { supabase, userId } = await getAuthContext();
 
   const fullName = (formData.get("full_name") as string)?.trim();
   const phone = (formData.get("phone") as string)?.trim();
@@ -32,7 +29,7 @@ export async function updateProfile(formData: FormData) {
       phone: phone || null,
       email: email || null,
     })
-    .eq("user_id", user.id);
+    .eq("user_id", userId);
 
   if (error) {
     return { error: "Kunne ikke oppdatere profil: " + error.message };

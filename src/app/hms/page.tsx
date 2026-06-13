@@ -1,47 +1,24 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
+import { severityConfig, daysUntil, formatDate, isOverdue } from "@/lib/config";
 import {
   ShieldCheck,
   AlertTriangle,
   CheckCircle2,
-  Clock,
   Flame,
   Zap,
   TreePine,
   Car,
-  Plus,
-  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { NyttAvvikDialog } from "@/components/hms/NyttAvvikDialog";
 
 const areaIcons: Record<string, typeof Flame> = {
-  brann: Flame,
-  el: Zap,
-  lekeplass: TreePine,
-  garasje: Car,
-};
-
-const severityConfig: Record<string, { label: string; color: string }> = {
-  lav: { label: "Lav", color: "bg-emerald-500/20 text-emerald-400" },
-  middels: { label: "Middels", color: "bg-amber-500/20 text-amber-400" },
-  hoy: { label: "Høy", color: "bg-red-500/20 text-red-400" },
-  kritisk: { label: "Kritisk", color: "bg-red-600/30 text-red-300" },
+  brann: Flame, el: Zap, lekeplass: TreePine, garasje: Car,
 };
 
 export default async function HmsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("user_id", user.id)
-    .single();
-
-  const tenantId = profile!.tenant_id;
+  const { supabase, tenantId } = await getAuthContext();
 
   const [areasRes, controlsRes, deviationsRes] = await Promise.all([
     supabase.from("hms_areas").select("*").eq("tenant_id", tenantId),

@@ -1,63 +1,16 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
+import { caseStatusConfig, severityConfig, taskStatusConfig, conditionConfig, formatDate, formatCost, daysUntil } from "@/lib/config";
 import {
-  FileText,
-  ShieldCheck,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  ClipboardList,
-  Calendar,
-  Wrench,
-  TrendingUp,
+  FileText, ShieldCheck, AlertTriangle, CheckCircle2,
+  ClipboardList, Calendar, Wrench,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExportButtons } from "@/components/oversikt/ExportButtons";
 
-const statusConfig: Record<string, { label: string; color: string }> = {
-  ny: { label: "Ny", color: "bg-blue-500/20 text-blue-400" },
-  under_behandling: { label: "Under behandling", color: "bg-amber-500/20 text-amber-400" },
-  vedtatt: { label: "Vedtatt", color: "bg-emerald-500/20 text-emerald-400" },
-  avvist: { label: "Avvist", color: "bg-red-500/20 text-red-400" },
-  utsatt: { label: "Utsatt", color: "bg-zinc-500/20 text-zinc-400" },
-  arkivert: { label: "Arkivert", color: "bg-zinc-500/20 text-zinc-500" },
-};
-
-const severityConfig: Record<string, { label: string; color: string }> = {
-  lav: { label: "Lav", color: "bg-emerald-500/20 text-emerald-400" },
-  middels: { label: "Middels", color: "bg-amber-500/20 text-amber-400" },
-  hoy: { label: "Høy", color: "bg-red-500/20 text-red-400" },
-  kritisk: { label: "Kritisk", color: "bg-red-600/30 text-red-300" },
-};
-
-const taskStatusConfig: Record<string, { label: string; color: string }> = {
-  ny: { label: "Ny", color: "bg-blue-500/20 text-blue-400" },
-  pagar: { label: "Pågår", color: "bg-amber-500/20 text-amber-400" },
-  ferdig: { label: "Ferdig", color: "bg-emerald-500/20 text-emerald-400" },
-};
-
-const conditionConfig: Record<string, { label: string; color: string }> = {
-  god: { label: "God", color: "text-emerald-400" },
-  akseptabel: { label: "Akseptabel", color: "text-amber-400" },
-  darlig: { label: "Dårlig", color: "text-red-400" },
-  kritisk: { label: "Kritisk", color: "text-red-300" },
-};
-
 export default async function OversiktPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, tenant_id, role, full_name, tenants(name)")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!profile) redirect("/login");
-  const tenantId = profile.tenant_id;
+  const { supabase, tenantId, tenantName } = await getAuthContext();
 
   const [casesRes, deviationsRes, tasksRes, meetingsRes, maintenanceRes] = await Promise.all([
     supabase.from("board_cases").select("*").eq("tenant_id", tenantId).order("created_at", { ascending: false }),
@@ -78,16 +31,11 @@ export default async function OversiktPage() {
   const pendingTasks = tasks.filter(t => t.status !== "ferdig");
   const criticalMaintenance = maintenance.filter(m => m.condition === "darlig" || m.condition === "kritisk");
 
-  const tenantName = (profile as any)?.tenants?.name || "Boligselskapet";
-
-  const fmt = (d: string | null) =>
-    d ? new Date(d).toLocaleDateString("no-NO", { day: "numeric", month: "short", year: "numeric" }) : "—";
-
   const exportCases = activeCases.map(c => ({
     title: c.title,
     category: c.category || "—",
-    status: (statusConfig[c.status] || statusConfig.ny).label,
-    created: fmt(c.created_at),
+    status: (caseStatusConfig[c.status] || caseStatusConfig.ny).label,
+    created: formatDate(c.created_at),
   }));
 
   const exportDeviations = openDeviations.map(d => ({
@@ -95,22 +43,22 @@ export default async function OversiktPage() {
     area: (d as any).hms_areas?.name || "—",
     severity: (severityConfig[d.severity] || severityConfig.lav).label,
     status: d.status === "open" ? "Åpen" : "Under arbeid",
-    due: fmt(d.due_date),
+    due: formatDate(d.due_date),
   }));
 
   const exportTasks = pendingTasks.map(t => ({
     title: t.title,
     assignee: (t as any).profiles?.full_name || "—",
     status: (taskStatusConfig[t.status] || taskStatusConfig.ny).label,
-    due: fmt(t.due_date),
+    due: formatDate(t.due_date),
   }));
 
   const exportMaintenance = maintenance.map(m => ({
     part: m.building_part,
     description: m.description,
     condition: (conditionConfig[m.condition] || conditionConfig.god).label,
-    nextDate: fmt(m.next_maintenance_at),
-    cost: m.estimated_cost ? `${Number(m.estimated_cost).toLocaleString("no-NO")} kr` : "—",
+    nextDate: formatDate(m.next_maintenance_at),
+    cost: formatCost(m.estimated_cost ? Number(m.estimated_cost) : null),
   }));
 
   return (
@@ -182,7 +130,7 @@ export default async function OversiktPage() {
             <EmptyState icon={FileText} text="Ingen aktive saker" />
           ) : (
             activeCases.map((c) => {
-              const status = statusConfig[c.status] || statusConfig.ny;
+              const status = caseStatusConfig[c.status] || caseStatusConfig.ny;
               return (
                 <a key={c.id} href={`/saker/${c.id}`} className="block bg-zinc-900 border border-zinc-800 rounded-xl p-4 hover:border-zinc-700 transition">
                   <div className="flex items-center justify-between">

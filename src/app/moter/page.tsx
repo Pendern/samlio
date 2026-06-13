@@ -1,27 +1,16 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
+import { meetingTypeLabels } from "@/lib/config";
 import { Calendar, MapPin, Clock, Users, ChevronRight, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { NyttMoteDialog } from "@/components/moter/NyttMoteDialog";
 
-const typeLabels: Record<string, string> = {
-  styremote: "Styremøte",
-  arsmote: "Årsmøte",
-  ekstraordinart: "Ekstraordinært",
-};
-
 export default async function MoterPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles").select("tenant_id").eq("user_id", user.id).single();
+  const { supabase, tenantId } = await getAuthContext();
 
   const { data: meetings } = await supabase
     .from("board_meetings")
     .select("*, meeting_attendance(profile_id, status)")
-    .eq("tenant_id", profile!.tenant_id)
+    .eq("tenant_id", tenantId)
     .order("date", { ascending: false });
 
   const now = new Date().toISOString().split("T")[0];
@@ -83,7 +72,7 @@ function MeetingCard({ meeting: m, isPast }: { meeting: any; isPast?: boolean })
           <div className="flex items-center gap-3 mb-2">
             <h3 className="font-semibold text-zinc-100 group-hover:text-white truncate">{m.title}</h3>
             <Badge variant="secondary" className={isPast ? "bg-zinc-500/20 text-zinc-400" : "bg-teal-500/20 text-teal-400"}>
-              {typeLabels[m.meeting_type] || m.meeting_type}
+              {meetingTypeLabels[m.meeting_type] || m.meeting_type}
             </Badge>
             {hasProtocol && (
               <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-400">Protokoll</Badge>

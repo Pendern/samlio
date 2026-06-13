@@ -1,8 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { getAuthContext } from "@/lib/auth";
+import { caseStatusConfig, formatDate } from "@/lib/config";
 import {
   FileText,
-  Plus,
   AlertTriangle,
   Clock,
   CheckCircle2,
@@ -12,30 +11,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { NySakDialog } from "@/components/saker/NySakDialog";
 
-const statusConfig: Record<string, { label: string; color: string; icon: typeof Clock }> = {
-  ny: { label: "Ny", color: "bg-blue-500/20 text-blue-400", icon: Clock },
-  under_behandling: { label: "Under behandling", color: "bg-amber-500/20 text-amber-400", icon: AlertTriangle },
-  vedtatt: { label: "Vedtatt", color: "bg-emerald-500/20 text-emerald-400", icon: CheckCircle2 },
-  avvist: { label: "Avvist", color: "bg-red-500/20 text-red-400", icon: AlertTriangle },
-  utsatt: { label: "Utsatt", color: "bg-zinc-500/20 text-zinc-400", icon: Clock },
-  arkivert: { label: "Arkivert", color: "bg-zinc-500/20 text-zinc-500", icon: Archive },
+const statusIcons: Record<string, typeof Clock> = {
+  ny: Clock, under_behandling: AlertTriangle, vedtatt: CheckCircle2,
+  avvist: AlertTriangle, utsatt: Clock, arkivert: Archive,
 };
 
 export default async function SakerPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("tenant_id")
-    .eq("user_id", user.id)
-    .single();
+  const { supabase, tenantId } = await getAuthContext();
 
   const { data: cases } = await supabase
     .from("board_cases")
     .select("*, profiles!board_cases_created_by_fkey(full_name)")
-    .eq("tenant_id", profile!.tenant_id)
+    .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false });
 
   const activeCases = cases?.filter(c => c.status !== "arkivert") || [];
@@ -64,13 +51,9 @@ export default async function SakerPage() {
           </div>
         ) : (
           activeCases.map((c) => {
-            const status = statusConfig[c.status] || statusConfig.ny;
-            const StatusIcon = status.icon;
-            const createdDate = new Date(c.created_at).toLocaleDateString("no-NO", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            });
+            const status = caseStatusConfig[c.status] || caseStatusConfig.ny;
+            const StatusIcon = statusIcons[c.status] || Clock;
+            const createdDate = formatDate(c.created_at);
 
             return (
               <a

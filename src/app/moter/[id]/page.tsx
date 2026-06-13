@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth";
+import { meetingTypeLabels, roleLabels, getInitials } from "@/lib/config";
 import { redirect } from "next/navigation";
 import { Calendar, MapPin, Clock, Users, FileText, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -6,26 +7,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import { ProtocolEditor } from "@/components/moter/ProtocolEditor";
 
-const typeLabels: Record<string, string> = {
-  styremote: "Styremøte",
-  arsmote: "Årsmøte",
-  ekstraordinart: "Ekstraordinært",
-};
-
 export default async function MeetingDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles").select("tenant_id").eq("user_id", user.id).single();
+  const { supabase, tenantId } = await getAuthContext();
 
   const { data: meeting } = await supabase
     .from("board_meetings")
     .select("*")
     .eq("id", id)
-    .eq("tenant_id", profile!.tenant_id)
+    .eq("tenant_id", tenantId)
     .single();
 
   if (!meeting) redirect("/moter");
@@ -59,7 +49,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-2xl font-bold text-zinc-100">{meeting.title}</h1>
           <Badge variant="secondary" className={isPast ? "bg-zinc-500/20 text-zinc-400" : "bg-teal-500/20 text-teal-400"}>
-            {typeLabels[meeting.meeting_type] || meeting.meeting_type}
+            {meetingTypeLabels[meeting.meeting_type] || meeting.meeting_type}
           </Badge>
         </div>
         <div className="flex items-center gap-5 text-sm text-zinc-400">
@@ -135,8 +125,8 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
               <div className="space-y-2">
                 {attendees.map((a, i) => {
                   const name = (a as any).profiles?.full_name || "Ukjent";
-                  const role = (a as any).profiles?.role;
-                  const initials = name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+                  const memberRole = (a as any).profiles?.role;
+                  const initials = getInitials(name);
                   return (
                     <div key={i} className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-medium text-zinc-400">
@@ -144,7 +134,7 @@ export default async function MeetingDetailPage({ params }: { params: Promise<{ 
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-zinc-200 truncate">{name}</p>
-                        <p className="text-xs text-zinc-500">{role === "styreleder" ? "Styreleder" : role === "styremedlem" ? "Styremedlem" : "Varamedlem"}</p>
+                        <p className="text-xs text-zinc-500">{roleLabels[memberRole] || memberRole}</p>
                       </div>
                       <div className={`w-2 h-2 rounded-full ${
                         a.status === "confirmed" ? "bg-emerald-500" :
