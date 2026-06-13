@@ -62,7 +62,7 @@ export function Sidebar() {
       )}
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 py-5 border-b border-zinc-800">
+      <Link href="/profil" className="flex items-center gap-3 px-4 py-5 border-b border-zinc-800 hover:bg-zinc-900/50 transition-colors">
         <div className="w-9 h-9 rounded-lg bg-violet-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
           MS
         </div>
@@ -76,7 +76,7 @@ export function Sidebar() {
             </p>
           </div>
         )}
-      </div>
+      </Link>
 
       {/* Role Toggle */}
       <div className="px-3 py-3 border-b border-zinc-800">
