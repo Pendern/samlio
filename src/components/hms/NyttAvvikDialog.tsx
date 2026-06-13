@@ -34,6 +34,32 @@ export function NyttAvvikDialog({ areas }: { areas: HmsArea[] }) {
 
   function handleSubmit(formData: FormData) {
     setError("");
+
+    const title = (formData.get("title") as string)?.trim();
+    const description = (formData.get("description") as string)?.trim();
+    const areaId = formData.get("area_id") as string;
+
+    if (!title) {
+      setError("Tittel er påkrevd");
+      return;
+    }
+    if (title.length < 3) {
+      setError("Tittelen må være minst 3 tegn");
+      return;
+    }
+    if (!description) {
+      setError("Beskrivelse er påkrevd");
+      return;
+    }
+    if (description.length < 10) {
+      setError("Beskrivelsen må være minst 10 tegn");
+      return;
+    }
+    if (!areaId) {
+      setError("Velg et kontrollområde");
+      return;
+    }
+
     startTransition(async () => {
       try {
         await createHmsDeviation(formData);

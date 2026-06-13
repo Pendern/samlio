@@ -18,8 +18,10 @@ import {
   Sparkles,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { signOut } from "@/app/actions";
 
 type ViewMode = "styre" | "beboer";
 
@@ -129,8 +131,8 @@ export function Sidebar() {
         </Link>
       </div>
 
-      {/* Collapse Toggle */}
-      <div className="px-3 py-2 border-t border-zinc-800">
+      {/* Bottom Actions */}
+      <div className="px-3 py-2 border-t border-zinc-800 space-y-1">
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-500 hover:text-zinc-300 transition-colors w-full"
@@ -144,6 +146,15 @@ export function Sidebar() {
             </>
           )}
         </button>
+        <form action={signOut}>
+          <button
+            type="submit"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs text-zinc-500 hover:text-red-400 transition-colors w-full"
+          >
+            <LogOut className="w-4 h-4" />
+            {!collapsed && <span>Logg ut</span>}
+          </button>
+        </form>
       </div>
     </aside>
   );

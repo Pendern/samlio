@@ -40,6 +40,21 @@ export function NySakDialog() {
 
   function handleSubmit(formData: FormData) {
     setError("");
+
+    const title = (formData.get("title") as string)?.trim();
+    if (!title) {
+      setError("Tittel er påkrevd");
+      return;
+    }
+    if (title.length < 3) {
+      setError("Tittelen må være minst 3 tegn");
+      return;
+    }
+    if (title.length > 200) {
+      setError("Tittelen kan maks være 200 tegn");
+      return;
+    }
+
     startTransition(async () => {
       try {
         await createBoardCase(formData);
