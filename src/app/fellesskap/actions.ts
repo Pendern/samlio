@@ -2,6 +2,7 @@
 
 import { getAuthContext } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { createNotifications } from "@/lib/notifications";
 
 export async function createPost(formData: FormData) {
   const { supabase, profileId, tenantId, role } = await getAuthContext();
@@ -32,6 +33,24 @@ export async function createPost(formData: FormData) {
   });
 
   if (error) return { error: "Kunne ikke publisere: " + error.message };
+
+  // Varsle alle i sameiet om nye oppslag/innlegg
+  const { data: allProfiles } = await supabase
+    .from("profiles").select("id").eq("tenant_id", tenantId);
+
+  if (allProfiles) {
+    await createNotifications({
+      supabase,
+      tenantId,
+      recipientIds: allProfiles.map(p => p.id),
+      actorId: profileId,
+      type: "post",
+      title: type === "announcement" ? "Nytt oppslag fra styret" : type === "event" ? "Nytt arrangement" : "Nytt innlegg",
+      body: (title || body).substring(0, 100),
+      href: "/fellesskap",
+    });
+  }
+
   revalidatePath("/fellesskap");
   return { success: true };
 }
@@ -48,6 +67,25 @@ export async function createComment(postId: string, body: string) {
   });
 
   if (error) return { error: error.message };
+
+  // Varsle innleggseieren om ny kommentar
+  const { data: post } = await supabase
+    .from("posts").select("author_id").eq("id", postId).single();
+
+  if (post && post.author_id !== profileId) {
+    await createNotifications({
+      supabase,
+      tenantId: (await supabase.from("profiles").select("tenant_id").eq("id", profileId).single()).data!.tenant_id,
+      recipientIds: [post.author_id],
+      actorId: profileId,
+      type: "comment",
+      title: "Ny kommentar på ditt innlegg",
+      body: body.trim().substring(0, 100),
+      href: "/fellesskap",
+      entityId: postId,
+    });
+  }
+
   revalidatePath("/fellesskap");
   return { success: true };
 }

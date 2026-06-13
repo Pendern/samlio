@@ -19,6 +19,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/app/actions";
@@ -121,7 +122,16 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* AI Assistant Button */}
+      {/* Varsler + AI */}
+      <div className="px-2 py-2 border-t border-zinc-800 space-y-0.5">
+        <Link
+          href="/varsler"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 transition-colors group"
+        >
+          <Bell className="w-4 h-4 flex-shrink-0 text-zinc-500 group-hover:text-zinc-300" />
+          {!collapsed && <span>Varsler</span>}
+        </Link>
+      </div>
       <div className="px-3 py-3 border-t border-zinc-800">
         <Link
           href="/ai"
