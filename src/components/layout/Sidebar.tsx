@@ -34,6 +34,7 @@ const styreNavItems = [
   { href: "/hms", label: "HMS", icon: ShieldCheck },
   { href: "/vedlikehold", label: "Vedlikehold", icon: Wrench },
   { href: "/okonomi", label: "Økonomi", icon: Banknote },
+  { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
   { href: "/kommunikasjon", label: "Kommunikasjon", icon: Mail },
   { href: "/selskapet", label: "Selskapet", icon: Building2 },
   { href: "/beboere", label: "Beboere", icon: Users },
@@ -43,7 +44,7 @@ const beboerNavItems = [
   { href: "/beboer", label: "Hjem", icon: Home },
   { href: "/profil", label: "Min profil", icon: Building2 },
   { href: "/beboer", label: "Saker & HMS", icon: ShieldCheck },
-  { href: "/meldinger", label: "Meldinger", icon: MessageSquare },
+  { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
   { href: "/booking", label: "Booking", icon: Calendar },
   { href: "/dokumenter", label: "Dokumenter", icon: FileText },
 ];
