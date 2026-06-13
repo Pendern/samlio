@@ -35,7 +35,20 @@ export async function createNotifications({
 
   if (recipients.length === 0) return;
 
-  const notifications = recipients.map((recipientId) => ({
+  // Sjekk preferanser — filtrer ut de som har slått av denne typen
+  const prefColumn = `${type}_enabled`;
+  const { data: disabledPrefs } = await supabase
+    .from("notification_preferences")
+    .select("profile_id")
+    .in("profile_id", recipients)
+    .eq(prefColumn, false);
+
+  const disabledIds = new Set((disabledPrefs || []).map(p => p.profile_id));
+  const filteredRecipients = recipients.filter(id => !disabledIds.has(id));
+
+  if (filteredRecipients.length === 0) return;
+
+  const notifications = filteredRecipients.map((recipientId) => ({
     tenant_id: tenantId,
     recipient_id: recipientId,
     actor_id: actorId,
