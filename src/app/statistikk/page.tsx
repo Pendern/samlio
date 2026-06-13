@@ -6,9 +6,10 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatistikkExportButton } from "@/components/statistikk/StatistikkExport";
 
 export default async function StatistikkPage() {
-  const { supabase, tenantId } = await getAuthContext();
+  const { supabase, tenantId, tenantName } = await getAuthContext();
 
   const [deviationsRes, tasksRes, controlsRes, maintenanceRes, casesRes] = await Promise.all([
     supabase.from("hms_deviations").select("id, severity, status, created_at, resolved_at, due_date, hms_areas(name)").eq("tenant_id", tenantId),
@@ -82,9 +83,32 @@ export default async function StatistikkPage() {
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Statistikk</h1>
-        <p className="text-sm text-zinc-500 mt-1">HMS-avvik, oppgaver og vedlikehold i tall</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-100">Statistikk</h1>
+          <p className="text-sm text-zinc-500 mt-1">HMS-avvik, oppgaver og vedlikehold i tall</p>
+        </div>
+        <StatistikkExportButton data={{
+          tenantName,
+          kpis: [
+            { label: "Åpne avvik", value: String(openDeviations.length) },
+            { label: "Løste avvik", value: String(resolvedDeviations.length) },
+            { label: "Forfalt kontroll", value: String(overdueControls.length) },
+            { label: "Oppgaver fullført", value: `${completionRate}%` },
+            { label: "Oppgaver forfalt", value: String(overdueTasks.length) },
+            { label: "Snitt løsningstid", value: avgResolutionDays !== null ? `${avgResolutionDays}d` : "—" },
+          ],
+          bySeverity: bySeverity.map(s => ({ label: s.config.label, open: s.open, total: s.total })),
+          byArea,
+          tasksByStatus,
+          completionRate,
+          byPerson,
+          overdue: [
+            ...overdueDeviations.map(d => ({ type: "HMS", label: (d as any).hms_areas?.name || "Ukjent", days: Math.abs(daysUntil(d.due_date) || 0) })),
+            ...overdueTasks.map(t => ({ type: "Oppgave", label: "Oppgave forfalt", days: Math.abs(daysUntil(t.due_date) || 0) })),
+            ...overdueControls.map(c => ({ type: "Kontroll", label: c.title, days: 0 })),
+          ],
+        }} />
       </div>
 
       {/* Top KPIs */}
