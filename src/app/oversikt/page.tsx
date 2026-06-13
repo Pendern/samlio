@@ -14,6 +14,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExportButtons } from "@/components/oversikt/ExportButtons";
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   ny: { label: "Ny", color: "bg-blue-500/20 text-blue-400" },
@@ -51,7 +52,7 @@ export default async function OversiktPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, tenant_id, role, full_name")
+    .select("id, tenant_id, role, full_name, tenants(name)")
     .eq("user_id", user.id)
     .single();
 
@@ -77,14 +78,58 @@ export default async function OversiktPage() {
   const pendingTasks = tasks.filter(t => t.status !== "ferdig");
   const criticalMaintenance = maintenance.filter(m => m.condition === "darlig" || m.condition === "kritisk");
 
+  const tenantName = (profile as any)?.tenants?.name || "Boligselskapet";
+
+  const fmt = (d: string | null) =>
+    d ? new Date(d).toLocaleDateString("no-NO", { day: "numeric", month: "short", year: "numeric" }) : "—";
+
+  const exportCases = activeCases.map(c => ({
+    title: c.title,
+    category: c.category || "—",
+    status: (statusConfig[c.status] || statusConfig.ny).label,
+    created: fmt(c.created_at),
+  }));
+
+  const exportDeviations = openDeviations.map(d => ({
+    title: d.title,
+    area: (d as any).hms_areas?.name || "—",
+    severity: (severityConfig[d.severity] || severityConfig.lav).label,
+    status: d.status === "open" ? "Åpen" : "Under arbeid",
+    due: fmt(d.due_date),
+  }));
+
+  const exportTasks = pendingTasks.map(t => ({
+    title: t.title,
+    assignee: (t as any).profiles?.full_name || "—",
+    status: (taskStatusConfig[t.status] || taskStatusConfig.ny).label,
+    due: fmt(t.due_date),
+  }));
+
+  const exportMaintenance = maintenance.map(m => ({
+    part: m.building_part,
+    description: m.description,
+    condition: (conditionConfig[m.condition] || conditionConfig.god).label,
+    nextDate: fmt(m.next_maintenance_at),
+    cost: m.estimated_cost ? `${Number(m.estimated_cost).toLocaleString("no-NO")} kr` : "—",
+  }));
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Styreoversikt</h1>
-        <p className="text-sm text-zinc-500 mt-1">
-          Komplett oversikt over saker, HMS, oppgaver og vedlikehold
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-100">Styreoversikt</h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            Komplett oversikt over saker, HMS, oppgaver og vedlikehold
+          </p>
+        </div>
+        <ExportButtons
+          tenantName={tenantName}
+          cases={exportCases}
+          deviations={exportDeviations}
+          tasks={exportTasks}
+          maintenance={exportMaintenance}
+        />
       </div>
 
       {/* Summary Stats */}
