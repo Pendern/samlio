@@ -1,20 +1,10 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-
-async function getProfileAndTenant() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-  const { data: profile } = await supabase.from("profiles").select("id, tenant_id").eq("user_id", user.id).single();
-  if (!profile) throw new Error("Ingen profil funnet");
-  return { supabase, profileId: profile.id, tenantId: profile.tenant_id };
-}
 
 export async function createMaintenanceItem(formData: FormData) {
-  const { supabase, tenantId } = await getProfileAndTenant();
+  const { supabase, tenantId } = await getAuthContext();
 
   const buildingPart = (formData.get("building_part") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();
@@ -45,7 +35,7 @@ export async function createMaintenanceItem(formData: FormData) {
 }
 
 export async function createTask(formData: FormData) {
-  const { supabase, profileId, tenantId } = await getProfileAndTenant();
+  const { supabase, profileId, tenantId } = await getAuthContext();
 
   const title = (formData.get("title") as string)?.trim();
   const description = (formData.get("description") as string)?.trim();
@@ -71,7 +61,7 @@ export async function createTask(formData: FormData) {
 }
 
 export async function updateTaskStatus(taskId: string, status: string) {
-  const { supabase, tenantId } = await getProfileAndTenant();
+  const { supabase, tenantId } = await getAuthContext();
 
   const { error } = await supabase
     .from("tasks")

@@ -1,28 +1,13 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { getAuthContext } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-
-async function getProfileAndTenant() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, tenant_id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!profile) throw new Error("Ingen profil funnet");
-  return { supabase, userId: user.id, profileId: profile.id, tenantId: profile.tenant_id };
-}
 
 // ── Styresaker ─────────────────────────────────────────────────
 
 export async function createBoardCase(formData: FormData) {
-  const { supabase, profileId, tenantId } = await getProfileAndTenant();
+  const { supabase, profileId, tenantId } = await getAuthContext();
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
@@ -48,7 +33,7 @@ export async function createBoardCase(formData: FormData) {
 // ── HMS-avvik ──────────────────────────────────────────────────
 
 export async function createHmsDeviation(formData: FormData) {
-  const { supabase, profileId, tenantId } = await getProfileAndTenant();
+  const { supabase, profileId, tenantId } = await getAuthContext();
 
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
@@ -80,7 +65,7 @@ export async function createHmsDeviation(formData: FormData) {
 // ── Logg ut ────────────────────────────────────────────────────
 
 export async function signOut() {
-  const supabase = await createClient();
+  const { supabase } = await getAuthContext();
   await supabase.auth.signOut();
   redirect("/login");
 }
