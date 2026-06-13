@@ -1,6 +1,7 @@
 import { getAuthContext } from "@/lib/auth";
 import { formatDate, getInitials, roleLabels } from "@/lib/config";
-import { Pin, Shield, MessageCircle, Calendar, MapPin, Users, Megaphone } from "lucide-react";
+import { Pin, Shield, MessageCircle, Calendar, MapPin, Users, Megaphone, Heart } from "lucide-react";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { PostComposer, CommentForm, ReactionButton, PinButton, RsvpButton, GroupJoinButton } from "@/components/fellesskap/CommunityComponents";
 
@@ -35,11 +36,20 @@ export default async function FellesskapPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-8 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Fellesskap</h1>
-        <p className="text-sm text-zinc-500 mt-1">
-          {isBoard ? "Du poster som styret" : "Hva skjer i sameiet?"}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-100">Fellesskap</h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            {isBoard ? "Du poster som styret" : "Hva skjer i sameiet?"}
+          </p>
+        </div>
+        <Link
+          href="/fellesskap/mitt"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition"
+        >
+          <Heart className="w-4 h-4" />
+          Mitt engasjement
+        </Link>
       </div>
 
       {/* Groups Bar */}
