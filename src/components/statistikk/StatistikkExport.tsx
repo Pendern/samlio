@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileDown, Mail, CheckCircle2, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { sendStatistikkEmail } from "@/app/statistikk/actions";
 
 interface StatistikkData {
   tenantName: string;
@@ -14,9 +16,30 @@ interface StatistikkData {
   completionRate: number;
   byPerson: { name: string; done: number; total: number; overdue: number }[];
   overdue: { type: string; label: string; days: number }[];
+  nextMeetingTitle?: string;
+  nextMeetingDate?: string;
 }
 
 export function StatistikkExportButton({ data }: { data: StatistikkData }) {
+  const [isPending, startTransition] = useTransition();
+  const [emailStatus, setEmailStatus] = useState<"idle" | "sent" | "error">("idle");
+  const [emailMsg, setEmailMsg] = useState("");
+
+  function handleEmail() {
+    setEmailStatus("idle");
+    startTransition(async () => {
+      const result = await sendStatistikkEmail(data);
+      if (result.error) {
+        setEmailStatus("error");
+        setEmailMsg(result.error);
+      } else {
+        setEmailStatus("sent");
+        setEmailMsg(`Sendt til ${result.recipientCount} styremedlem${result.recipientCount! > 1 ? "mer" : ""}`);
+        setTimeout(() => setEmailStatus("idle"), 4000);
+      }
+    });
+  }
+
   function handleExport() {
     const doc = new jsPDF();
     const pw = doc.internal.pageSize.getWidth();
@@ -157,13 +180,33 @@ export function StatistikkExportButton({ data }: { data: StatistikkData }) {
   }
 
   return (
-    <Button
-      onClick={handleExport}
-      variant="outline"
-      className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
-    >
-      <FileDown className="w-4 h-4 mr-2" />
-      Eksporter PDF
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button
+        onClick={handleExport}
+        variant="outline"
+        className="border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+      >
+        <FileDown className="w-4 h-4 mr-2" />
+        PDF
+      </Button>
+      <Button
+        onClick={handleEmail}
+        disabled={isPending || emailStatus === "sent"}
+        variant="outline"
+        className={`${
+          emailStatus === "sent" ? "border-emerald-700 text-emerald-400" :
+          emailStatus === "error" ? "border-red-700 text-red-400" :
+          "border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+        }`}
+      >
+        {isPending ? (
+          <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sender...</>
+        ) : emailStatus === "sent" ? (
+          <><CheckCircle2 className="w-4 h-4 mr-2" /> {emailMsg}</>
+        ) : (
+          <><Mail className="w-4 h-4 mr-2" /> Send til styret</>
+        )}
+      </Button>
+    </div>
   );
 }

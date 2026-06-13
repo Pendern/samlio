@@ -11,12 +11,13 @@ import { StatistikkExportButton } from "@/components/statistikk/StatistikkExport
 export default async function StatistikkPage() {
   const { supabase, tenantId, tenantName } = await getAuthContext();
 
-  const [deviationsRes, tasksRes, controlsRes, maintenanceRes, casesRes] = await Promise.all([
+  const [deviationsRes, tasksRes, controlsRes, maintenanceRes, casesRes, meetingRes] = await Promise.all([
     supabase.from("hms_deviations").select("id, severity, status, created_at, resolved_at, due_date, hms_areas(name)").eq("tenant_id", tenantId),
     supabase.from("tasks").select("id, status, due_date, created_at, profiles!tasks_assigned_to_fkey(full_name)").eq("tenant_id", tenantId),
     supabase.from("hms_controls").select("id, next_due_date, last_completed_at, title").eq("tenant_id", tenantId),
     supabase.from("maintenance_items").select("id, condition, estimated_cost").eq("tenant_id", tenantId),
     supabase.from("board_cases").select("id, status, created_at").eq("tenant_id", tenantId),
+    supabase.from("board_meetings").select("title, date").eq("tenant_id", tenantId).gte("date", new Date().toISOString().split("T")[0]).order("date").limit(1),
   ]);
 
   const deviations = deviationsRes.data || [];
@@ -24,6 +25,7 @@ export default async function StatistikkPage() {
   const controls = controlsRes.data || [];
   const maintenance = maintenanceRes.data || [];
   const cases = casesRes.data || [];
+  const nextMeeting = meetingRes.data?.[0];
 
   // ── HMS-statistikk ─────────────────────────────────────────
   const openDeviations = deviations.filter(d => d.status !== "resolved");
@@ -108,6 +110,8 @@ export default async function StatistikkPage() {
             ...overdueTasks.map(t => ({ type: "Oppgave", label: "Oppgave forfalt", days: Math.abs(daysUntil(t.due_date) || 0) })),
             ...overdueControls.map(c => ({ type: "Kontroll", label: c.title, days: 0 })),
           ],
+          nextMeetingTitle: nextMeeting?.title,
+          nextMeetingDate: nextMeeting ? formatDate(nextMeeting.date, { weekday: "long", day: "numeric", month: "long" }) : undefined,
         }} />
       </div>
 
