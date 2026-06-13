@@ -77,6 +77,54 @@ export async function toggleReaction(postId: string) {
   return { success: true };
 }
 
+export async function toggleRsvp(postId: string) {
+  const { supabase, profileId } = await getAuthContext();
+
+  const { data: existing } = await supabase
+    .from("event_rsvps")
+    .select("id, status")
+    .eq("post_id", postId)
+    .eq("profile_id", profileId)
+    .single();
+
+  if (existing) {
+    const newStatus = existing.status === "attending" ? "not_attending" : "attending";
+    await supabase.from("event_rsvps").update({ status: newStatus }).eq("id", existing.id);
+  } else {
+    await supabase.from("event_rsvps").insert({
+      post_id: postId,
+      profile_id: profileId,
+      status: "attending",
+    });
+  }
+
+  revalidatePath("/fellesskap");
+  return { success: true };
+}
+
+export async function toggleGroupMembership(groupId: string) {
+  const { supabase, profileId } = await getAuthContext();
+
+  const { data: existing } = await supabase
+    .from("group_memberships")
+    .select("id")
+    .eq("group_id", groupId)
+    .eq("profile_id", profileId)
+    .single();
+
+  if (existing) {
+    await supabase.from("group_memberships").delete().eq("id", existing.id);
+  } else {
+    await supabase.from("group_memberships").insert({
+      group_id: groupId,
+      profile_id: profileId,
+    });
+  }
+
+  revalidatePath("/fellesskap");
+  return { success: true };
+}
+
 export async function togglePin(postId: string) {
   const { supabase, tenantId, role } = await getAuthContext();
 

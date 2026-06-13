@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { createPost, createComment, toggleReaction, togglePin } from "@/app/fellesskap/actions";
+import { createPost, createComment, toggleReaction, togglePin, toggleRsvp, toggleGroupMembership } from "@/app/fellesskap/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { ThumbsUp, MessageCircle, Pin, Send, Shield } from "lucide-react";
+import { ThumbsUp, MessageCircle, Pin, Send, Shield, CalendarCheck, UserPlus, UserMinus } from "lucide-react";
 
 // ── Nytt innlegg ───────────────────────────────────────────────
 
@@ -120,6 +120,55 @@ export function ReactionButton({ postId, count, hasReacted }: { postId: string; 
     >
       <ThumbsUp className={`w-3.5 h-3.5 ${hasReacted ? "fill-violet-400" : ""}`} />
       {count > 0 && count}
+    </button>
+  );
+}
+
+// ── Pinne-knapp (kun styre) ────────────────────────────────────
+
+// ── RSVP-knapp (arrangement) ───────────────────────────────────
+
+export function RsvpButton({ postId, isAttending, attendingCount }: { postId: string; isAttending: boolean; attendingCount: number }) {
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <Button
+      onClick={() => startTransition(async () => { await toggleRsvp(postId); })}
+      disabled={isPending}
+      size="sm"
+      variant={isAttending ? "default" : "outline"}
+      className={`h-8 text-xs ${
+        isAttending
+          ? "bg-teal-600 hover:bg-teal-500 text-white"
+          : "border-teal-700 text-teal-400 hover:bg-teal-950/50"
+      }`}
+    >
+      <CalendarCheck className="w-3.5 h-3.5 mr-1.5" />
+      {isPending ? "..." : isAttending ? `Deltar (${attendingCount})` : "Meld deg på"}
+    </Button>
+  );
+}
+
+// ── Gruppemedlemskap-knapp ─────────────────────────────────────
+
+export function GroupJoinButton({ groupId, groupName, isMember, memberCount }: { groupId: string; groupName: string; isMember: boolean; memberCount: number }) {
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <button
+      onClick={() => startTransition(async () => { await toggleGroupMembership(groupId); })}
+      disabled={isPending}
+      className={`flex items-center gap-1.5 text-xs px-3 py-1 rounded-full border transition ${
+        isMember
+          ? "bg-violet-600/20 border-violet-500/30 text-violet-400 hover:bg-red-950/30 hover:border-red-500/30 hover:text-red-400"
+          : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-600 hover:text-zinc-200"
+      }`}
+    >
+      {isMember ? <UserMinus className="w-3 h-3" /> : <UserPlus className="w-3 h-3" />}
+      <span>{groupName}</span>
+      {isPending ? "" : isMember ? "" : ""}
+      <span className="text-zinc-600">·</span>
+      <span className="text-zinc-500">{memberCount}</span>
     </button>
   );
 }

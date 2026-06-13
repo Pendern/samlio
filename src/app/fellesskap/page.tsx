@@ -2,7 +2,7 @@ import { getAuthContext } from "@/lib/auth";
 import { formatDate, getInitials, roleLabels } from "@/lib/config";
 import { Pin, Shield, MessageCircle, Calendar, MapPin, Users, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { PostComposer, CommentForm, ReactionButton, PinButton } from "@/components/fellesskap/CommunityComponents";
+import { PostComposer, CommentForm, ReactionButton, PinButton, RsvpButton, GroupJoinButton } from "@/components/fellesskap/CommunityComponents";
 
 export default async function FellesskapPage() {
   const { supabase, tenantId, profileId, role } = await getAuthContext();
@@ -47,13 +47,11 @@ export default async function FellesskapPage() {
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           <span className="text-xs text-zinc-500 flex-shrink-0">Grupper:</span>
           {allGroups.map(g => {
-            const memberCount = (g as any).group_memberships?.length || 0;
+            const memberships = (g as any).group_memberships || [];
+            const memberCount = memberships.length;
+            const isMember = memberships.some((m: any) => m.profile_id === profileId);
             return (
-              <div key={g.id} className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-800 rounded-full px-3 py-1 text-xs flex-shrink-0">
-                <Users className="w-3 h-3 text-zinc-500" />
-                <span className="text-zinc-300">{g.name}</span>
-                <span className="text-zinc-600">{memberCount}</span>
-              </div>
+              <GroupJoinButton key={g.id} groupId={g.id} groupName={g.name} isMember={isMember} memberCount={memberCount} />
             );
           })}
         </div>
@@ -150,12 +148,11 @@ export default async function FellesskapPage() {
                           {post.event_location}
                         </span>
                       )}
-                      {attendingCount > 0 && (
-                        <span className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5" />
-                          {attendingCount} deltar
-                        </span>
-                      )}
+                      <RsvpButton
+                        postId={post.id}
+                        isAttending={rsvps.some((r: any) => r.profile_id === profileId && r.status === "attending")}
+                        attendingCount={attendingCount}
+                      />
                     </div>
                   )}
                 </div>
