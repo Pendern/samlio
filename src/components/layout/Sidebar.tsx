@@ -40,9 +40,9 @@ const styreNavItems = [
 ];
 
 const beboerNavItems = [
-  { href: "/", label: "Hjem", icon: Home },
-  { href: "/min-bolig", label: "Min bolig", icon: Building2 },
-  { href: "/oppslag", label: "Oppslag", icon: FileText },
+  { href: "/beboer", label: "Hjem", icon: Home },
+  { href: "/profil", label: "Min profil", icon: Building2 },
+  { href: "/beboer", label: "Saker & HMS", icon: ShieldCheck },
   { href: "/meldinger", label: "Meldinger", icon: MessageSquare },
   { href: "/booking", label: "Booking", icon: Calendar },
   { href: "/dokumenter", label: "Dokumenter", icon: FileText },
