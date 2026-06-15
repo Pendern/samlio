@@ -32,9 +32,10 @@ const styreNavItems = [
   { href: "/moter", label: "Møter", icon: Calendar },
   { href: "/hms", label: "HMS", icon: ShieldCheck },
   { href: "/vedlikehold", label: "Vedlikehold", icon: Wrench },
+  { href: "/okonomi", label: "Økonomi", icon: Banknote },
   { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
   { href: "/oversikt", label: "Oversikt", icon: BookOpen },
-  { href: "/statistikk", label: "Statistikk", icon: Banknote },
+  { href: "/statistikk", label: "Statistikk", icon: LayoutDashboard },
 ];
 
 const beboerNavItems = [
