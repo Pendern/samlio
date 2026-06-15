@@ -30,24 +30,17 @@ const styreNavItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/saker", label: "Saker", icon: FileText },
   { href: "/moter", label: "Møter", icon: Calendar },
-  { href: "/oppgaver", label: "Oppgaver", icon: BookOpen },
-  { href: "/dokumenter", label: "Dokumenter", icon: FileText },
   { href: "/hms", label: "HMS", icon: ShieldCheck },
   { href: "/vedlikehold", label: "Vedlikehold", icon: Wrench },
-  { href: "/okonomi", label: "Økonomi", icon: Banknote },
   { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
-  { href: "/kommunikasjon", label: "Kommunikasjon", icon: Mail },
-  { href: "/selskapet", label: "Selskapet", icon: Building2 },
-  { href: "/beboere", label: "Beboere", icon: Users },
+  { href: "/oversikt", label: "Oversikt", icon: BookOpen },
+  { href: "/statistikk", label: "Statistikk", icon: Banknote },
 ];
 
 const beboerNavItems = [
   { href: "/beboer", label: "Hjem", icon: Home },
   { href: "/profil", label: "Min profil", icon: Building2 },
-  { href: "/beboer", label: "Saker & HMS", icon: ShieldCheck },
   { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
-  { href: "/booking", label: "Booking", icon: Calendar },
-  { href: "/dokumenter", label: "Dokumenter", icon: FileText },
 ];
 
 export function Sidebar() {

@@ -22,11 +22,15 @@ export async function getAuthContext(): Promise<AuthContext> {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  // Hent primær profil — styreleder prioriteres over andre roller
+  const { data: profiles } = await supabase
     .from("profiles")
     .select("id, tenant_id, full_name, role, tenants(name)")
     .eq("user_id", user.id)
-    .single();
+    .order("role")
+    .limit(1);
+
+  const profile = profiles?.[0];
 
   if (!profile) redirect("/login");
 
