@@ -36,6 +36,46 @@ export const meetingTypeLabels: Record<string, string> = {
   ekstraordinart: "Ekstraordinært",
 };
 
+export const insuranceStatusConfig: Record<string, { label: string; color: string }> = {
+  aktiv: { label: "Aktiv", color: "bg-emerald-500/20 text-emerald-400" },
+  utlopt: { label: "Utløpt", color: "bg-red-500/20 text-red-400" },
+  kansellert: { label: "Kansellert", color: "bg-zinc-500/20 text-zinc-400" },
+};
+
+export const bookingStatusConfig: Record<string, { label: string; color: string }> = {
+  bekreftet: { label: "Bekreftet", color: "bg-emerald-500/20 text-emerald-400" },
+  venter: { label: "Venter", color: "bg-amber-500/20 text-amber-400" },
+  kansellert: { label: "Kansellert", color: "bg-red-500/20 text-red-400" },
+};
+
+export const keyTypeLabels: Record<string, string> = {
+  hovednokkel: "Hovednøkkel",
+  systemnokkel: "Systemnøkkel",
+  brikke: "Brikke",
+  kode: "Kode",
+};
+
+export const insuranceTypeLabels: Record<string, string> = {
+  bygning: "Bygningsforsikring",
+  innbo: "Innboforsikring",
+  styreansvar: "Styreansvar",
+  brann: "Brannforsikring",
+  vannskade: "Vannskadeforsikring",
+  ansvar: "Ansvarsforsikring",
+};
+
+export const supplierCategoryLabels: Record<string, string> = {
+  rorlegger: "Rørlegger",
+  elektriker: "Elektriker",
+  vaktmester: "Vaktmester",
+  renhold: "Renhold",
+  heis: "Heis",
+  uteomrade: "Uteområde",
+  maler: "Maler",
+  snekker: "Snekker",
+  generelt: "Generelt",
+};
+
 export const roleLabels: Record<string, string> = {
   styreleder: "Styreleder",
   styremedlem: "Styremedlem",

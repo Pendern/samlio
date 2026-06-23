@@ -11,6 +11,8 @@ export type AiSuggestionStatus = "pending" | "accepted" | "rejected" | "deferred
 export type HmsControlFrequency = "monthly" | "quarterly" | "biannual" | "annual";
 export type HmsDeviationSeverity = "lav" | "middels" | "hoy" | "kritisk";
 export type MaintenanceCondition = "god" | "akseptabel" | "darlig" | "kritisk";
+export type InsuranceStatus = "aktiv" | "utlopt" | "kansellert";
+export type BookingStatus = "bekreftet" | "venter" | "kansellert";
 
 // ── Fase 0: Grunnmur ──────────────────────────────────────────
 
@@ -246,6 +248,80 @@ export interface MaintenanceItem {
   actual_cost: number | null;
   notes: string | null;
   attachments: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ── Fase 9: Drift / Selskapet ──────────────────────────────────
+
+export interface InsurancePolicy {
+  id: string;
+  tenant_id: string;
+  policy_number: string;
+  provider: string;
+  type: string; // bygning, innbo, styreansvar, brann
+  coverage_amount: number | null;
+  annual_premium: number | null;
+  valid_from: string;
+  valid_to: string;
+  contact_person: string | null;
+  contact_phone: string | null;
+  status: InsuranceStatus;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KeyRegister {
+  id: string;
+  tenant_id: string;
+  key_type: string; // hovednøkkel, systemnøkkel, brikke, kode
+  label: string;
+  serial_number: string | null;
+  assigned_to: string | null; // profile_id
+  unit_id: string | null;
+  issued_at: string | null;
+  returned_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface BookingResource {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  location: string | null;
+  max_hours: number | null;
+  rules: string | null;
+  created_at: string;
+}
+
+export interface Booking {
+  id: string;
+  tenant_id: string;
+  resource_id: string;
+  booked_by: string; // profile_id
+  date: string;
+  time_from: string;
+  time_to: string;
+  purpose: string | null;
+  status: BookingStatus;
+  created_at: string;
+}
+
+export interface Supplier {
+  id: string;
+  tenant_id: string;
+  name: string;
+  category: string; // rørlegger, elektriker, vaktmester, renhold, etc.
+  contact_person: string | null;
+  phone: string | null;
+  email: string | null;
+  org_nr: string | null;
+  address: string | null;
+  rating: number | null; // 1-5
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }

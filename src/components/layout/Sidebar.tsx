@@ -20,6 +20,7 @@ import {
   ChevronRight,
   LogOut,
   Bell,
+  Settings2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/app/actions";
@@ -36,6 +37,7 @@ const styreNavItems = [
   { href: "/nybygg", label: "Nybygg", icon: Building2 },
   { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
   { href: "/generalforsamling", label: "Generalforsamling", icon: Users },
+  { href: "/drift", label: "Drift", icon: Settings2 },
   { href: "/oversikt", label: "Oversikt", icon: BookOpen },
   { href: "/statistikk", label: "Statistikk", icon: LayoutDashboard },
 ];
