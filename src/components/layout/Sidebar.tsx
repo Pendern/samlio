@@ -33,6 +33,7 @@ const styreNavItems = [
   { href: "/hms", label: "HMS", icon: ShieldCheck },
   { href: "/vedlikehold", label: "Vedlikehold", icon: Wrench },
   { href: "/okonomi", label: "Økonomi", icon: Banknote },
+  { href: "/nybygg", label: "Nybygg", icon: Building2 },
   { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
   { href: "/oversikt", label: "Oversikt", icon: BookOpen },
   { href: "/statistikk", label: "Statistikk", icon: LayoutDashboard },
