@@ -7,6 +7,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NyReklamasjonDialog, ClaimStatusButton } from "@/components/nybygg/NybyggDialogs";
+import { NyFdvDialog } from "@/components/nybygg/NyFdvDialog";
 
 const claimStatusConfig: Record<string, { label: string; color: string }> = {
   active: { label: "Aktiv", color: "bg-amber-500/20 text-amber-400" },
@@ -58,7 +59,10 @@ export default async function NybyggPage() {
             Reklamasjonsfrister, FDV-dokumentasjon og juridisk veiledning
           </p>
         </div>
-        <NyReklamasjonDialog />
+        <div className="flex items-center gap-2">
+          <NyFdvDialog />
+          <NyReklamasjonDialog />
+        </div>
       </div>
 
       {/* KPIs */}
