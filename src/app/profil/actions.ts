@@ -1,10 +1,11 @@
 "use server";
 
 import { getAuthContext } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
 export async function updateProfile(formData: FormData) {
-  const { supabase, userId } = await getAuthContext();
+  const { supabase, tenantId, userId } = await getAuthContext();
 
   const fullName = (formData.get("full_name") as string)?.trim();
   const phone = (formData.get("phone") as string)?.trim();
@@ -35,7 +36,40 @@ export async function updateProfile(formData: FormData) {
     return { error: "Kunne ikke oppdatere profil: " + error.message };
   }
 
+  await logAudit(supabase, tenantId, userId, "profile_updated", "profile");
+
   revalidatePath("/profil");
   revalidatePath("/");
-  return { success: true };
+  return {};
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+  const { supabase, tenantId, userId } = await getAuthContext();
+
+  if (!newPassword || newPassword.length < 8) {
+    return { error: "Passordet må være minst 8 tegn" };
+  }
+
+  // Verify current password by re-authenticating
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user?.email) return { error: "Kunne ikke hente brukerinfo" };
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: currentPassword,
+  });
+
+  if (signInError) {
+    return { error: "Nåværende passord er feil" };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+  if (error) {
+    return { error: "Kunne ikke endre passord: " + error.message };
+  }
+
+  await logAudit(supabase, tenantId, userId, "password_changed", "auth");
+
+  return {};
 }

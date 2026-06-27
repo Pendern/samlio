@@ -1,8 +1,8 @@
 import { getAuthContext } from "@/lib/auth";
 import { roleLabels, formatDate, getInitials } from "@/lib/config";
-import { User, Building2, Shield, Calendar } from "lucide-react";
+import { User, Building2, Shield, Calendar, Lock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ProfileForm } from "@/components/profil/ProfileForm";
+import { ProfileForm, PasswordForm } from "@/components/profil/ProfileForm";
 
 export default async function ProfilPage() {
   const { supabase, userId, role } = await getAuthContext();
@@ -20,10 +20,10 @@ export default async function ProfilPage() {
   const roleLabel = roleLabels[role] || role;
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-zinc-100">Min profil</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-100">Min profil</h1>
         <p className="text-sm text-zinc-500 mt-1">
           Se og oppdater din kontaktinformasjon
         </p>
@@ -31,16 +31,16 @@ export default async function ProfilPage() {
 
       {/* Profile Overview Card */}
       <Card className="bg-zinc-900 border-zinc-800">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-4 sm:gap-5">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-violet-600 flex items-center justify-center text-white font-bold text-lg sm:text-xl flex-shrink-0">
               {getInitials(profile.full_name)}
             </div>
             <div>
               <h2 className="text-lg font-semibold text-zinc-100">
                 {profile.full_name || "Ukjent bruker"}
               </h2>
-              <div className="flex items-center gap-4 mt-1 text-sm text-zinc-400">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4 mt-1 text-sm text-zinc-400">
                 <span className="flex items-center gap-1.5">
                   <Shield className="w-3.5 h-3.5" />
                   {roleLabel}
@@ -58,12 +58,12 @@ export default async function ProfilPage() {
       {/* Tenant Info */}
       {tenant && (
         <Card className="bg-zinc-900 border-zinc-800">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-4">
               <Building2 className="w-5 h-5 text-zinc-500" />
               <h3 className="font-semibold text-zinc-200">Boligselskap</h3>
             </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-sm">
               <div>
                 <p className="text-zinc-500">Navn</p>
                 <p className="text-zinc-200">{tenant.name}</p>
@@ -107,7 +107,7 @@ export default async function ProfilPage() {
 
       {/* Edit Form */}
       <Card className="bg-zinc-900 border-zinc-800">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-5">
             <User className="w-5 h-5 text-zinc-500" />
             <h3 className="font-semibold text-zinc-200">Kontaktinformasjon</h3>
@@ -120,6 +120,17 @@ export default async function ProfilPage() {
               role: profile.role,
             }}
           />
+        </CardContent>
+      </Card>
+
+      {/* Password */}
+      <Card className="bg-zinc-900 border-zinc-800">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-5">
+            <Lock className="w-5 h-5 text-zinc-500" />
+            <h3 className="font-semibold text-zinc-200">Endre passord</h3>
+          </div>
+          <PasswordForm />
         </CardContent>
       </Card>
     </div>
