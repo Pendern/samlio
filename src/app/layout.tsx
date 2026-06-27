@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/layout/AppShell";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const inter = Inter({
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body className="min-h-full flex bg-zinc-950 text-zinc-100">
         <TooltipProvider>
           <AppShell>{children}</AppShell>
+          <Toaster theme="dark" position="bottom-right" richColors />
         </TooltipProvider>
       </body>
     </html>

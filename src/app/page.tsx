@@ -13,7 +13,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { getAuthContext } from "@/lib/auth";
 import { getGreeting, daysUntil, roleLabels } from "@/lib/config";
-import { SuggestionActions, GenerateSuggestionsButton } from "@/components/ai/AiComponents";
+import { SuggestionList, GenerateSuggestionsButton } from "@/components/ai/AiComponents";
 
 export default async function Dashboard() {
   const { supabase, tenantId, fullName, role, tenantName } = await getAuthContext();
@@ -164,33 +164,7 @@ export default async function Dashboard() {
           </h2>
           <GenerateSuggestionsButton />
         </div>
-        <div className="space-y-3">
-          {aiSuggestions.length === 0 && (
-            <div className="bg-violet-950/20 border border-violet-900/20 rounded-xl p-6 text-center">
-              <Sparkles className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-              <p className="text-sm text-zinc-400">Klikk "Oppdater forslag" for å analysere dataene og generere AI-forslag</p>
-            </div>
-          )}
-          {aiSuggestions.map((s) => (
-            <div
-              key={s.id}
-              className="bg-violet-950/30 border border-violet-900/30 rounded-xl p-5"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-9 h-9 rounded-lg bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="w-4 h-4 text-violet-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-200 leading-relaxed">{s.suggestion_text}</p>
-                  {s.source_refs && s.source_refs.length > 0 && (
-                    <p className="text-xs text-zinc-500 mt-2">Basert på: {s.source_refs.join(", ")}</p>
-                  )}
-                  <SuggestionActions suggestionId={s.id} />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <SuggestionList suggestions={aiSuggestions} />
       </section>
 
       {/* Module Grid */}
