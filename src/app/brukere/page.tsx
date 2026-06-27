@@ -42,18 +42,18 @@ export default async function BrukerePage() {
   }, {});
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-zinc-100">Brukere</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-zinc-100">Brukere</h1>
           <p className="text-sm text-zinc-500 mt-1">Administrer brukere og roller</p>
         </div>
         <InviterBrukerDialog />
       </div>
 
       {/* Role Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
         {Object.entries(rolePriority).filter(([r]) => r !== "ekstern").map(([r]) => (
           <Card key={r} className="bg-zinc-900 border-zinc-800">
             <CardContent className="p-3 text-center">
@@ -78,52 +78,52 @@ export default async function BrukerePage() {
             return (
               <div
                 key={user.id}
-                className={`bg-zinc-900 border rounded-xl p-4 flex items-center gap-4 ${
+                className={`bg-zinc-900 border rounded-xl p-4 ${
                   isCurrentUser ? "border-violet-900/50" : "border-zinc-800"
                 }`}
               >
-                {/* Avatar */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 ${
-                  isCurrentUser ? "bg-violet-600 text-white" : "bg-zinc-800 text-zinc-400"
-                }`}>
-                  {getInitials(user.full_name)}
+                {/* Top row: avatar + info */}
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0 ${
+                    isCurrentUser ? "bg-violet-600 text-white" : "bg-zinc-800 text-zinc-400"
+                  }`}>
+                    {getInitials(user.full_name)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium text-zinc-200 truncate">
+                        {user.full_name || "Uten navn"}
+                      </p>
+                      <Badge variant="secondary" className={`${rc} text-[10px] px-1.5 py-0`}>
+                        {roleLabels[user.role] || user.role}
+                      </Badge>
+                      {isCurrentUser && (
+                        <span className="text-[10px] text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded">Du</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500 flex-wrap">
+                      {user.email && (
+                        <span className="flex items-center gap-1">
+                          <Mail className="w-3 h-3" />
+                          <span className="truncate max-w-[160px] sm:max-w-none">{user.email}</span>
+                        </span>
+                      )}
+                      {user.phone && (
+                        <span className="hidden sm:flex items-center gap-1">
+                          <Phone className="w-3 h-3" />
+                          {user.phone}
+                        </span>
+                      )}
+                      <span className="hidden sm:flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(user.created_at, { day: "numeric", month: "short", year: "numeric" })}
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-zinc-200 truncate">
-                      {user.full_name || "Uten navn"}
-                    </p>
-                    <Badge variant="secondary" className={`${rc} text-[10px] px-1.5 py-0`}>
-                      {roleLabels[user.role] || user.role}
-                    </Badge>
-                    {isCurrentUser && (
-                      <span className="text-[10px] text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded">Du</span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4 mt-1 text-xs text-zinc-500">
-                    {user.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
-                        {user.email}
-                      </span>
-                    )}
-                    {user.phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone className="w-3 h-3" />
-                        {user.phone}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatDate(user.created_at, { day: "numeric", month: "short", year: "numeric" })}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Bottom row: actions (stacked on mobile) */}
+                <div className="flex items-center gap-2 mt-3 sm:mt-2 pl-[52px]">
                   <RolleSelect
                     profileId={user.id}
                     currentRole={user.role}
