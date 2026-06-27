@@ -55,19 +55,48 @@ export class MockAiProvider implements AiProvider {
     }
 
     if (lastMessage.includes("leverandør") || lastMessage.includes("anbud")) {
-      return "Sjekk leverandørregisteret under Drift-modulen. For større jobber anbefaler jeg minst 3 tilbud. Vurder leverandørenes rating og tidligere erfaringer før du velger.";
+      const count = data.totalSuppliers || 0;
+      return `Dere har ${count} leverandør${count !== 1 ? "er" : ""} registrert. Sjekk leverandørregisteret under Drift-modulen. For større jobber anbefaler jeg minst 3 tilbud. Vurder leverandørenes rating og tidligere erfaringer før du velger.`;
     }
 
     if (lastMessage.includes("nøkkel") || lastMessage.includes("brikke")) {
       return "Nøkkelregisteret finner du under Drift. Hold oversikt over hvem som har hvilke nøkler, og sørg for at returnerte nøkler markeres. Vurder systemnøkler med sporing for bedre sikkerhet.";
     }
 
+    if (lastMessage.includes("sak") || lastMessage.includes("styresak")) {
+      const count = data.openCases || 0;
+      if (count > 0) {
+        return `Det er ${count} åpne styresak${count > 1 ? "er" : ""}. Gå til Saker-modulen for å se status og oppdatere. Saker som har stått lenge bør enten behandles i neste møte eller arkiveres.`;
+      }
+      return "Ingen åpne styresaker for øyeblikket. Bruk Saker-modulen til å opprette nye saker når behov oppstår.";
+    }
+
+    if (lastMessage.includes("booking") || lastMessage.includes("felleslokale") || lastMessage.includes("reserv")) {
+      const count = data.upcomingBookings || 0;
+      return `Det er ${count} kommende booking${count !== 1 ? "er" : ""}. Du kan booke felleslokale, gjesterom eller vaskerom under Drift-modulen.`;
+    }
+
+    if (lastMessage.includes("status") || lastMessage.includes("oversikt") || lastMessage.includes("oppsummering")) {
+      const parts: string[] = [];
+      if (data.openDeviations > 0) parts.push(`${data.openDeviations} åpne HMS-avvik`);
+      if (data.pendingInvoices > 0) parts.push(`${data.pendingInvoices} fakturaer til godkjenning`);
+      if (data.openCases > 0) parts.push(`${data.openCases} åpne styresaker`);
+      if (data.expiringPolicies > 0) parts.push(`${data.expiringPolicies} forsikringer som utløper snart`);
+      if (data.maintenanceThisYear > 0) parts.push(`${data.maintenanceThisYear} vedlikeholdstiltak i år`);
+      if (data.upcomingBookings > 0) parts.push(`${data.upcomingBookings} kommende bookinger`);
+
+      if (parts.length === 0) {
+        return "Alt ser bra ut! Ingen åpne avvik, ventende fakturaer eller presserende saker. Fortsett det gode arbeidet.";
+      }
+      return `Her er en statusoversikt:\n\n${parts.map(p => `• ${p}`).join("\n")}\n\nSpør meg om et spesifikt område for mer detaljer.`;
+    }
+
     if (lastMessage.includes("hjelp") || lastMessage.includes("hva kan du")) {
-      return "Jeg kan hjelpe deg med:\n• HMS-status og avvikshåndtering\n• Vedlikeholdsplanlegging\n• Økonomioversikt og fakturaer\n• Forsikringsstatus\n• Møteforberedelser\n• Generalforsamling\n• Leverandører og anbud\n• Nøkkeladministrasjon\n\nStill meg et spørsmål om noen av disse temaene!";
+      return "Jeg kan hjelpe deg med:\n• HMS-status og avvikshåndtering\n• Vedlikeholdsplanlegging\n• Økonomioversikt og fakturaer\n• Forsikringsstatus\n• Møteforberedelser\n• Generalforsamling\n• Leverandører og anbud\n• Nøkkeladministrasjon\n• Statusoversikt\n• Bookinger og felleslokaler\n\nPrøv å si \"gi meg en statusoversikt\" for en komplett oppsummering!";
     }
 
     // Default response
-    return "Jeg er AI-assistenten for styrearbeid. Spør meg om HMS, vedlikehold, økonomi, forsikring, møter, generalforsamling, leverandører eller nøkler — så gir jeg deg kontekstuelle råd basert på dataene i systemet.";
+    return "Jeg er AI-assistenten for styrearbeid. Spør meg om HMS, vedlikehold, økonomi, forsikring, møter, saker, booking, generalforsamling, leverandører eller nøkler \u2014 eller si \"gi meg en statusoversikt\" for en komplett oppsummering.";
   }
 
   private processInput(input: AiSuggestionInput): AiSuggestionOutput | null {
