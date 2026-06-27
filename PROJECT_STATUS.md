@@ -1,6 +1,6 @@
 # Samlio — Prosjektstatus
 
-**Sist oppdatert:** 23. juni 2026
+**Sist oppdatert:** 27. juni 2026
 **Repo:** https://github.com/Pendern/samlio
 **Live:** https://www.samlio.no (Vercel: `samlio` i `penderns-projects`)
 **Supabase:** `fmdgrzujvuoslqafejzv.supabase.co` (Free tier)
@@ -13,7 +13,7 @@
 - Supabase (Auth, PostgreSQL, Storage, RLS)
 - Inter font, Lucide React icons
 
-## Ferdigstilte sider (20 stk)
+## Ferdigstilte sider (24 stk)
 
 | Side | Rute | Beskrivelse |
 |------|------|-------------|
@@ -36,6 +36,10 @@
 | Innstillinger | `/innstillinger` | 9 varselpreferanser |
 | Profil | `/profil` | Redigerbar kontaktinfo |
 | Beboer | `/beboer` | Beboeroversikt |
+| Mine boliger | `/boliger` | Enheter, nøkler, bookinger, bygningsstatus |
+| Brukere | `/brukere` | Brukeradmin, roller, invitasjon (kun styreleder) |
+| Drift | `/drift` | Forsikring, nøkler, booking, leverandører |
+| Spør AI | `/ai` | Chat med kontekstuell AI-assistent |
 
 ## Database-migrasjoner (9 stk)
 
@@ -59,43 +63,60 @@ Alle tabeller har RLS med tenant isolation. Seed data for alle moduler.
 - `src/lib/config.ts` — Alle status/severity/condition configs + formatering
 - `src/lib/notifications.ts` — Notification-opprettelse med preferansesjekk
 - `src/lib/export.ts` — PDF/Excel-generering
+- `src/lib/audit.ts` — Gjenbrukbar audit logging helper (fire-and-forget)
+- `src/lib/ai/` — AI-motorlag: provider.ts (interface), mock-provider.ts, engine.ts, index.ts
+- `src/lib/supabase/admin.ts` — Supabase admin-klient (service_role key)
 - `src/components/layout/Sidebar.tsx` — Sidebar med Styre/Beboer-veksling
-- `src/components/layout/AppShell.tsx` — Skjuler sidebar på /login
-- `src/app/actions.ts` — Globale server actions (createBoardCase, createHmsDeviation, signOut)
+- `src/components/layout/AppShell.tsx` — Mobil hamburger-meny + desktop sidebar
+- `src/app/actions.ts` — Globale server actions
 
-## Auth
-- Bruker: `andreas@waagmartinsen.no`
-- `email_confirmed_at` ble satt manuelt (Auto Confirm var ikke på)
+## Auth — Testbrukere
+- **Styreleder:** andreas@waagmartinsen.no (eksisterende passord)
+- **Styremedlem:** kari@samlio.no / Samlio2026!
+- **Beboer:** erik@samlio.no / Samlio2026! (enhet H0204, 58m², 2. etg)
+- `email_confirmed_at` ble satt manuelt for første bruker
 
 ## DNS
 - samlio.no: A record → 216.198.79.1, CNAME www → Vercel
 - Registrar: Uniweb
 
-## Ferdigstilt AI-integrasjon
-- Mock AI-provider (gratis, ingen API-kall) med provider-interface for enkel Claude-swap
-- Suggestion engine analyserer 9 datakilder: HMS-kontroller, avvik, vedlikehold (frist + tilstand), fakturaer, budsjett, forsikring, stale saker, kommende møter
-- Dashboard: "Oppdater forslag"-knapp, kategori-filter (HMS/Vedlikehold/Økonomi/Forsikring/Saker/Møter), aksepter/utsett/avvis med toast-feedback
-- `/ai` chat-side med kontekstuelle svar basert på live data, inkludert "gi meg en statusoversikt"
-- Sonner toast-notifikasjoner (dark theme, bottom-right)
-- Arkitektur: `src/lib/ai/provider.ts` (interface), `mock-provider.ts`, `engine.ts`, `index.ts` (factory)
+## Utviklingslogg
+
+### Sesjon 23. juni 2026
+- Opprettet Drift/Selskapet-modul (forsikring, nøkler, booking, leverandører)
+- SQL-migrasjon 009 med 5 tabeller, RLS og seed data
+- Opprettet GitHub-repo: github.com/Pendern/samlio
+- Deployet til Vercel: www.samlio.no
+
+### Sesjon 27. juni 2026
+- AI-integrasjon: mock provider, suggestion engine, chat (/ai)
+- Auto-generering av forslag ved dashboard-lasting (1t cache)
+- Toast-notifikasjoner (Sonner) for alle AI-operasjoner
+- Kategori-filtrering i forslagslisten
+- Forslagshistorikk (kollapserbar, siste 20 resolved)
+- Audit logging for alle AI-interaksjoner (src/lib/audit.ts)
+- Chat keyword-prioritet fikset (forsikring vs sak)
+- Brukeradministrasjon: /brukere med inviter, roller, fjern
+- Supabase admin-klient (src/lib/supabase/admin.ts)
+- Seed-brukere: Kari Johansen (styremedlem), Erik Berg (beboer)
+- Responsivt design: mobil hamburger-meny, responsive brukerkort
+- Passordendring på profilsiden
+- Mine Boliger-side (/boliger)
+- 48 AI unit-tester (totalt 143 tester)
+
+## Tester
+- **143 tester** i 7 filer, alle bestått
+- Dekker: typer, utils, export, notifications, statistikk, generalforsamling, AI
 
 ## Neste utviklingsfase — prioriterte forbedringer
 
-### Prioritet 1 — Høy verdi, lav innsats
-- [ ] **Automatisk forslagsgenerering** — Kall engine server-side ved dashboard-lasting med caching (maks 1x/time), slik at brukeren alltid ser ferske forslag uten å klikke
-- [ ] **AI-tester** — Unit-tester for MockAiProvider (chat-routing, suggestion-generering) og engine (dataanalyse-logikk)
-- [ ] **Audit logging av AI** — Logge alle AI-interaksjoner (forslag generert, akseptert, avvist) til `audit_log`
-- [ ] **Forslagshistorikk** — Vis aksepterte/avviste forslag i en egen fane, ikke bare pending
+### Anbefalt neste steg
+- [ ] **PWA-støtte** — manifest.json + service worker for installasjon og grunnleggende caching (~1t). Push-varsler er et eget steg.
+- [ ] **Claude API-integrasjon** — Implementer `ClaudeProvider` i `src/lib/ai/`, sett `ANTHROPIC_API_KEY`. Mock forblir fallback. Gjør chatten mye smartere.
 
-### Prioritet 2 — Høy verdi, middels innsats
-- [ ] **Claude API-integrasjon** — Implementer `ClaudeProvider` i `src/lib/ai/`, sett `ANTHROPIC_API_KEY` i env. Mock forblir fallback
-- [ ] **Brukeradministrasjon** — Invite-flow: styreleder inviterer nye brukere via e-post, automatisk profil-opprettelse med riktig tenant_id
-- [ ] **Flere seed-brukere** — Legg til styremedlem + beboer for å teste rolleveksling ordentlig
-- [ ] **Responsivt design** — Finjuster mobilvisning: sidebar som drawer, filter-chips scroll horisontalt, chat fullskjerm
-
-### Prioritet 3 — Middels verdi, høyere innsats
-- [ ] **PWA-støtte** — Service worker, manifest.json, offline-tilgang, push-varsler
-- [ ] **Forsikringsskadehåndtering** — Utvidelse av drift-modulen: registrer skade → koble til polise → spor status
+### Øvrige forbedringer
+- [ ] **Forsikringsskadehåndtering** — Utvidelse av drift: registrer skade → koble til polise → spor status
+- [ ] **E-post-varsler** — Resend-baserte varsler for kritiske hendelser (HMS-avvik, forsikring utløper, møtepaminnel)
 - [ ] **Dokumenthåndtering** — AI-oppsummering av opplastede dokumenter (krever Claude)
-- [ ] **E-post-integrasjon** — Resend-baserte varsler for kritiske hendelser (HMS-avvik, forsikring utløper)
-- [ ] **Flerspråklig** — Engelsk UI-oversettelse for internasjonale sameier
+- [ ] **Flerspråklig** — Engelsk UI-oversettelse
+- [ ] **SUPABASE_SERVICE_ROLE_KEY** — Legg til i .env.local og Vercel for full invitasjonsflyt
