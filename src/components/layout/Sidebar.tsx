@@ -45,6 +45,7 @@ const styreNavItems = [
 
 const beboerNavItems = [
   { href: "/beboer", label: "Hjem", icon: Home },
+  { href: "/boliger", label: "Mine boliger", icon: Home },
   { href: "/profil", label: "Min profil", icon: Building2 },
   { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
 ];
