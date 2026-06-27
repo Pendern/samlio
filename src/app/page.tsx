@@ -14,16 +14,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getAuthContext } from "@/lib/auth";
 import { getGreeting, daysUntil, roleLabels } from "@/lib/config";
 import { SuggestionList, GenerateSuggestionsButton } from "@/components/ai/AiComponents";
+import { analyzeAndGenerateSuggestions } from "@/lib/ai/engine";
 
 export default async function Dashboard() {
-  const { supabase, tenantId, fullName, role, tenantName } = await getAuthContext();
+  const { supabase, tenantId, profileId, fullName, role, tenantName } = await getAuthContext();
   const firstName = fullName?.split(" ")[0] || "Bruker";
 
   // Hent live stats
   const [casesRes, deviationsRes, suggestionsRes, meetingRes, controlsRes, maintenanceRes, docsRes] = await Promise.all([
     supabase.from("board_cases").select("id, status").eq("tenant_id", tenantId!),
     supabase.from("hms_deviations").select("id, status, severity, title, description, due_date").eq("tenant_id", tenantId!).neq("status", "resolved"),
-    supabase.from("ai_suggestions").select("*").eq("tenant_id", tenantId!).eq("status", "pending"),
+    supabase.from("ai_suggestions").select("*").eq("tenant_id", tenantId!).eq("status", "pending").order("created_at", { ascending: false }),
     supabase.from("board_meetings").select("id, title, date").eq("tenant_id", tenantId!).gte("date", new Date().toISOString().split("T")[0]).order("date").limit(1),
     supabase.from("hms_controls").select("id").eq("tenant_id", tenantId!),
     supabase.from("maintenance_items").select("id, next_maintenance_at").eq("tenant_id", tenantId!),
@@ -33,8 +34,27 @@ export default async function Dashboard() {
   const activeCases = casesRes.data?.filter(c => c.status !== "arkivert") || [];
   const urgentCases = activeCases.filter(c => c.status === "under_behandling");
   const openDeviations = deviationsRes.data || [];
-  const aiSuggestions = suggestionsRes.data || [];
+  let aiSuggestions = suggestionsRes.data || [];
   const nextMeeting = meetingRes.data?.[0];
+
+  // Auto-generate suggestions if stale (>1 hour) or empty
+  const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+  const newestSuggestion = aiSuggestions[0]?.created_at;
+  const isStale = !newestSuggestion || (Date.now() - new Date(newestSuggestion).getTime()) > CACHE_TTL_MS;
+
+  if (isStale) {
+    try {
+      await analyzeAndGenerateSuggestions(supabase, tenantId, profileId);
+      const { data: fresh } = await supabase
+        .from("ai_suggestions")
+        .select("*")
+        .eq("tenant_id", tenantId)
+        .eq("status", "pending");
+      aiSuggestions = fresh || [];
+    } catch {
+      // Silently fail — manual button still works
+    }
+  }
   const totalControls = controlsRes.data?.length || 0;
   const totalDocs = docsRes.data?.length || 0;
   const maintenanceThisYear = maintenanceRes.data?.filter(m => {
