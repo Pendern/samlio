@@ -38,6 +38,7 @@ const styreNavItems = [
   { href: "/fellesskap", label: "Fellesskap", icon: MessageSquare },
   { href: "/generalforsamling", label: "Generalforsamling", icon: Users },
   { href: "/drift", label: "Drift", icon: Settings2 },
+  { href: "/brukere", label: "Brukere", icon: Users },
   { href: "/oversikt", label: "Oversikt", icon: BookOpen },
   { href: "/statistikk", label: "Statistikk", icon: LayoutDashboard },
 ];
