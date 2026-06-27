@@ -71,10 +71,31 @@ Alle tabeller har RLS med tenant isolation. Seed data for alle moduler.
 - samlio.no: A record → 216.198.79.1, CNAME www → Vercel
 - Registrar: Uniweb
 
-## Hva som gjenstår (valgfritt)
-- [ ] AI-integrasjon med Claude API (forslag, oppsummeringer)
-- [ ] Tester for drift-modulen
-- [ ] Brukeradministrasjon / invite-flow
-- [ ] Finjustering/polish av UI
-- [ ] Flere seed-brukere for å teste rolleveksling
-- [ ] Selskapet/Drift: evt. utvidelse med forsikringsskadehåndtering
+## Ferdigstilt AI-integrasjon
+- Mock AI-provider (gratis, ingen API-kall) med provider-interface for enkel Claude-swap
+- Suggestion engine analyserer 9 datakilder: HMS-kontroller, avvik, vedlikehold (frist + tilstand), fakturaer, budsjett, forsikring, stale saker, kommende møter
+- Dashboard: "Oppdater forslag"-knapp, kategori-filter (HMS/Vedlikehold/Økonomi/Forsikring/Saker/Møter), aksepter/utsett/avvis med toast-feedback
+- `/ai` chat-side med kontekstuelle svar basert på live data, inkludert "gi meg en statusoversikt"
+- Sonner toast-notifikasjoner (dark theme, bottom-right)
+- Arkitektur: `src/lib/ai/provider.ts` (interface), `mock-provider.ts`, `engine.ts`, `index.ts` (factory)
+
+## Neste utviklingsfase — prioriterte forbedringer
+
+### Prioritet 1 — Høy verdi, lav innsats
+- [ ] **Automatisk forslagsgenerering** — Kall engine server-side ved dashboard-lasting med caching (maks 1x/time), slik at brukeren alltid ser ferske forslag uten å klikke
+- [ ] **AI-tester** — Unit-tester for MockAiProvider (chat-routing, suggestion-generering) og engine (dataanalyse-logikk)
+- [ ] **Audit logging av AI** — Logge alle AI-interaksjoner (forslag generert, akseptert, avvist) til `audit_log`
+- [ ] **Forslagshistorikk** — Vis aksepterte/avviste forslag i en egen fane, ikke bare pending
+
+### Prioritet 2 — Høy verdi, middels innsats
+- [ ] **Claude API-integrasjon** — Implementer `ClaudeProvider` i `src/lib/ai/`, sett `ANTHROPIC_API_KEY` i env. Mock forblir fallback
+- [ ] **Brukeradministrasjon** — Invite-flow: styreleder inviterer nye brukere via e-post, automatisk profil-opprettelse med riktig tenant_id
+- [ ] **Flere seed-brukere** — Legg til styremedlem + beboer for å teste rolleveksling ordentlig
+- [ ] **Responsivt design** — Finjuster mobilvisning: sidebar som drawer, filter-chips scroll horisontalt, chat fullskjerm
+
+### Prioritet 3 — Middels verdi, høyere innsats
+- [ ] **PWA-støtte** — Service worker, manifest.json, offline-tilgang, push-varsler
+- [ ] **Forsikringsskadehåndtering** — Utvidelse av drift-modulen: registrer skade → koble til polise → spor status
+- [ ] **Dokumenthåndtering** — AI-oppsummering av opplastede dokumenter (krever Claude)
+- [ ] **E-post-integrasjon** — Resend-baserte varsler for kritiske hendelser (HMS-avvik, forsikring utløper)
+- [ ] **Flerspråklig** — Engelsk UI-oversettelse for internasjonale sameier
