@@ -8,15 +8,12 @@ import {
   ShieldCheck,
   Wrench,
   Sparkles,
-  Check,
-  X,
-  PencilLine,
   ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { getAuthContext } from "@/lib/auth";
 import { getGreeting, daysUntil, roleLabels } from "@/lib/config";
+import { SuggestionActions, GenerateSuggestionsButton } from "@/components/ai/AiComponents";
 
 export default async function Dashboard() {
   const { supabase, tenantId, fullName, role, tenantName } = await getAuthContext();
@@ -160,11 +157,20 @@ export default async function Dashboard() {
 
       {/* AI Suggestions */}
       <section>
-        <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wide mb-4">
-          <Sparkles className="w-4 h-4 inline-block mr-1.5 text-violet-400" />
-          AI-forslag
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-medium text-zinc-400 uppercase tracking-wide">
+            <Sparkles className="w-4 h-4 inline-block mr-1.5 text-violet-400" />
+            AI-forslag ({aiSuggestions.length})
+          </h2>
+          <GenerateSuggestionsButton />
+        </div>
         <div className="space-y-3">
+          {aiSuggestions.length === 0 && (
+            <div className="bg-violet-950/20 border border-violet-900/20 rounded-xl p-6 text-center">
+              <Sparkles className="w-8 h-8 text-violet-600 mx-auto mb-2" />
+              <p className="text-sm text-zinc-400">Klikk "Oppdater forslag" for å analysere dataene og generere AI-forslag</p>
+            </div>
+          )}
           {aiSuggestions.map((s) => (
             <div
               key={s.id}
@@ -175,19 +181,11 @@ export default async function Dashboard() {
                   <Sparkles className="w-4 h-4 text-violet-400" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-zinc-200 leading-relaxed">{s.text}</p>
-                  <p className="text-xs text-zinc-500 mt-2">Basert på: {s.source}</p>
-                  <div className="flex items-center gap-2 mt-3">
-                    <Button size="sm" className="bg-violet-600 hover:bg-violet-500 text-white h-8 text-xs">
-                      <Check className="w-3 h-3 mr-1" /> Aksepter
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-zinc-400 hover:text-zinc-200 h-8 text-xs">
-                      <PencilLine className="w-3 h-3 mr-1" /> Rediger
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-zinc-500 hover:text-zinc-300 h-8 text-xs">
-                      <X className="w-3 h-3 mr-1" /> Avvis
-                    </Button>
-                  </div>
+                  <p className="text-sm text-zinc-200 leading-relaxed">{s.suggestion_text}</p>
+                  {s.source_refs && s.source_refs.length > 0 && (
+                    <p className="text-xs text-zinc-500 mt-2">Basert på: {s.source_refs.join(", ")}</p>
+                  )}
+                  <SuggestionActions suggestionId={s.id} />
                 </div>
               </div>
             </div>
