@@ -63,7 +63,7 @@ export class MockAiProvider implements AiProvider {
       return "Nøkkelregisteret finner du under Drift. Hold oversikt over hvem som har hvilke nøkler, og sørg for at returnerte nøkler markeres. Vurder systemnøkler med sporing for bedre sikkerhet.";
     }
 
-    if (lastMessage.includes("sak") || lastMessage.includes("styresak")) {
+    if (lastMessage.includes("styresak") || (lastMessage.includes("sak") && !lastMessage.includes("forsikring"))) {
       const count = data.openCases || 0;
       if (count > 0) {
         return `Det er ${count} åpne styresak${count > 1 ? "er" : ""}. Gå til Saker-modulen for å se status og oppdatere. Saker som har stått lenge bør enten behandles i neste møte eller arkiveres.`;
