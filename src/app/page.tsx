@@ -15,9 +15,10 @@ import { getAuthContext } from "@/lib/auth";
 import { getGreeting, daysUntil, roleLabels } from "@/lib/config";
 import { SuggestionList, GenerateSuggestionsButton } from "@/components/ai/AiComponents";
 import { analyzeAndGenerateSuggestions } from "@/lib/ai/engine";
+import { logAudit } from "@/lib/audit";
 
 export default async function Dashboard() {
-  const { supabase, tenantId, profileId, fullName, role, tenantName } = await getAuthContext();
+  const { supabase, tenantId, userId, profileId, fullName, role, tenantName } = await getAuthContext();
   const firstName = fullName?.split(" ")[0] || "Bruker";
 
   // Hent live stats
@@ -44,13 +45,17 @@ export default async function Dashboard() {
 
   if (isStale) {
     try {
-      await analyzeAndGenerateSuggestions(supabase, tenantId, profileId);
+      const result = await analyzeAndGenerateSuggestions(supabase, tenantId, profileId);
       const { data: fresh } = await supabase
         .from("ai_suggestions")
         .select("*")
         .eq("tenant_id", tenantId)
         .eq("status", "pending");
       aiSuggestions = fresh || [];
+      await logAudit(supabase, tenantId, userId, "ai_suggestions_generated", "ai_suggestion", null, {
+        count: result.inserted,
+        trigger: "auto",
+      });
     } catch {
       // Silently fail — manual button still works
     }

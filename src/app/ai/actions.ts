@@ -3,12 +3,18 @@
 import { getAuthContext } from "@/lib/auth";
 import { analyzeAndGenerateSuggestions } from "@/lib/ai/engine";
 import { getAiProvider } from "@/lib/ai";
+import { logAudit } from "@/lib/audit";
 import { revalidatePath } from "next/cache";
 
 export async function generateSuggestions() {
-  const { supabase, tenantId, profileId } = await getAuthContext();
+  const { supabase, tenantId, userId, profileId } = await getAuthContext();
 
   const result = await analyzeAndGenerateSuggestions(supabase, tenantId, profileId);
+
+  await logAudit(supabase, tenantId, userId, "ai_suggestions_generated", "ai_suggestion", null, {
+    count: result.inserted,
+    trigger: "manual",
+  });
 
   revalidatePath("/");
   return { inserted: result.inserted };
@@ -18,7 +24,7 @@ export async function updateSuggestionStatus(
   suggestionId: string,
   status: "accepted" | "rejected" | "deferred",
 ) {
-  const { supabase, userId } = await getAuthContext();
+  const { supabase, tenantId, userId } = await getAuthContext();
 
   const { error } = await supabase
     .from("ai_suggestions")
@@ -31,13 +37,15 @@ export async function updateSuggestionStatus(
 
   if (error) return { error: error.message };
 
+  await logAudit(supabase, tenantId, userId, `ai_suggestion_${status}`, "ai_suggestion", suggestionId);
+
   revalidatePath("/");
   return {};
 }
 
 export async function chatWithAi(messages: { role: "user" | "assistant"; content: string }[]) {
   try {
-    const { supabase, tenantId } = await getAuthContext();
+    const { supabase, tenantId, userId } = await getAuthContext();
 
     // Gather context for the chat
     const [deviationsRes, invoicesRes, maintenanceRes, insuranceRes, casesRes, suppliersRes, bookingsRes] = await Promise.all([
@@ -71,6 +79,12 @@ export async function chatWithAi(messages: { role: "user" | "assistant"; content
 
     const provider = getAiProvider();
     const response = await provider.chat(messages, context);
+
+    const userMessage = messages[messages.length - 1]?.content || "";
+    await logAudit(supabase, tenantId, userId, "ai_chat", "ai_chat", null, {
+      user_message: userMessage.substring(0, 200),
+      provider: "mock-rules-v1",
+    });
 
     return { response };
   } catch {
