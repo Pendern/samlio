@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { updateSuggestionStatus, generateSuggestions } from "@/app/ai/actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Clock, RefreshCw, Sparkles, Filter } from "lucide-react";
+import { Check, X, Clock, RefreshCw, Sparkles, Filter, History, ChevronDown, ChevronUp } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Suggestion action buttons ──────────────────────────────────
@@ -105,6 +105,11 @@ interface Suggestion {
   source_refs: string[] | null;
 }
 
+interface ResolvedSuggestion extends Suggestion {
+  status: string;
+  resolved_at: string | null;
+}
+
 export function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) {
   const [filter, setFilter] = useState<string | null>(null);
 
@@ -186,5 +191,85 @@ export function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) {
         })}
       </div>
     </>
+  );
+}
+
+// ── Suggestion history ─────────────────────────────────────
+
+const statusConfig: Record<string, { label: string; icon: typeof Check; color: string }> = {
+  accepted: { label: "Akseptert", icon: Check, color: "text-emerald-400" },
+  rejected: { label: "Avvist", icon: X, color: "text-red-400" },
+  deferred: { label: "Utsatt", icon: Clock, color: "text-amber-400" },
+};
+
+function formatTimeAgo(dateStr: string | null): string {
+  if (!dateStr) return "";
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "akkurat nå";
+  if (mins < 60) return `${mins}m siden`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}t siden`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d siden`;
+  return new Date(dateStr).toLocaleDateString("no-NO", { day: "numeric", month: "short" });
+}
+
+export function SuggestionHistory({ suggestions }: { suggestions: ResolvedSuggestion[] }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const accepted = suggestions.filter(s => s.status === "accepted").length;
+  const rejected = suggestions.filter(s => s.status === "rejected").length;
+  const deferred = suggestions.filter(s => s.status === "deferred").length;
+
+  return (
+    <div className="mt-4">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2 text-xs text-zinc-500 hover:text-zinc-300 transition w-full"
+      >
+        <History className="w-3.5 h-3.5" />
+        <span>Historikk ({suggestions.length})</span>
+        <span className="flex items-center gap-2 ml-1">
+          {accepted > 0 && <span className="text-emerald-500">{accepted} akseptert</span>}
+          {rejected > 0 && <span className="text-red-500">{rejected} avvist</span>}
+          {deferred > 0 && <span className="text-amber-500">{deferred} utsatt</span>}
+        </span>
+        <span className="ml-auto">
+          {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="mt-3 space-y-2">
+          {suggestions.map((s) => {
+            const cfg = typeConfig[s.type] || { label: s.type, color: "bg-zinc-500/20 text-zinc-400" };
+            const sc = statusConfig[s.status] || statusConfig.deferred;
+            const StatusIcon = sc.icon;
+            return (
+              <div
+                key={s.id}
+                className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl p-4 flex items-start gap-3 opacity-75"
+              >
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                  s.status === "accepted" ? "bg-emerald-500/10" :
+                  s.status === "rejected" ? "bg-red-500/10" : "bg-amber-500/10"
+                }`}>
+                  <StatusIcon className={`w-3.5 h-3.5 ${sc.color}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="secondary" className={`${cfg.color} text-[10px] px-1.5 py-0`}>{cfg.label}</Badge>
+                    <span className={`text-[10px] ${sc.color}`}>{sc.label}</span>
+                    <span className="text-[10px] text-zinc-600 ml-auto">{formatTimeAgo(s.resolved_at)}</span>
+                  </div>
+                  <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">{s.suggestion_text}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

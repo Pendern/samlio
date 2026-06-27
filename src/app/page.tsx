@@ -13,7 +13,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { getAuthContext } from "@/lib/auth";
 import { getGreeting, daysUntil, roleLabels } from "@/lib/config";
-import { SuggestionList, GenerateSuggestionsButton } from "@/components/ai/AiComponents";
+import { SuggestionList, SuggestionHistory, GenerateSuggestionsButton } from "@/components/ai/AiComponents";
 import { analyzeAndGenerateSuggestions } from "@/lib/ai/engine";
 import { logAudit } from "@/lib/audit";
 
@@ -22,10 +22,11 @@ export default async function Dashboard() {
   const firstName = fullName?.split(" ")[0] || "Bruker";
 
   // Hent live stats
-  const [casesRes, deviationsRes, suggestionsRes, meetingRes, controlsRes, maintenanceRes, docsRes] = await Promise.all([
+  const [casesRes, deviationsRes, suggestionsRes, historyRes, meetingRes, controlsRes, maintenanceRes, docsRes] = await Promise.all([
     supabase.from("board_cases").select("id, status").eq("tenant_id", tenantId!),
     supabase.from("hms_deviations").select("id, status, severity, title, description, due_date").eq("tenant_id", tenantId!).neq("status", "resolved"),
     supabase.from("ai_suggestions").select("*").eq("tenant_id", tenantId!).eq("status", "pending").order("created_at", { ascending: false }),
+    supabase.from("ai_suggestions").select("*").eq("tenant_id", tenantId!).in("status", ["accepted", "rejected", "deferred"]).order("resolved_at", { ascending: false }).limit(20),
     supabase.from("board_meetings").select("id, title, date").eq("tenant_id", tenantId!).gte("date", new Date().toISOString().split("T")[0]).order("date").limit(1),
     supabase.from("hms_controls").select("id").eq("tenant_id", tenantId!),
     supabase.from("maintenance_items").select("id, next_maintenance_at").eq("tenant_id", tenantId!),
@@ -36,6 +37,7 @@ export default async function Dashboard() {
   const urgentCases = activeCases.filter(c => c.status === "under_behandling");
   const openDeviations = deviationsRes.data || [];
   let aiSuggestions = suggestionsRes.data || [];
+  const suggestionHistory = historyRes.data || [];
   const nextMeeting = meetingRes.data?.[0];
 
   // Auto-generate suggestions if stale (>1 hour) or empty
@@ -190,6 +192,9 @@ export default async function Dashboard() {
           <GenerateSuggestionsButton />
         </div>
         <SuggestionList suggestions={aiSuggestions} />
+        {suggestionHistory.length > 0 && (
+          <SuggestionHistory suggestions={suggestionHistory} />
+        )}
       </section>
 
       {/* Module Grid */}
