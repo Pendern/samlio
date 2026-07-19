@@ -1,6 +1,6 @@
 # Samlio — Prosjektstatus
 
-**Sist oppdatert:** 27. juni 2026
+**Sist oppdatert:** 19. juli 2026
 **Repo:** https://github.com/Pendern/samlio
 **Live:** https://www.samlio.no (Vercel: `samlio` i `penderns-projects`)
 **Supabase:** `fmdgrzujvuoslqafejzv.supabase.co` (Free tier)
@@ -104,6 +104,14 @@ Alle tabeller har RLS med tenant isolation. Seed data for alle moduler.
 - Mine Boliger-side (/boliger)
 - 48 AI unit-tester (totalt 143 tester)
 
+### Sesjon 19. juli 2026
+- Supabase-prosjekt gjenopprettet (pauset etter 3 uker inaktivitet)
+- OpenAI-integrasjon: GPT-4o-mini provider (`src/lib/ai/openai-provider.ts`)
+- System prompt: Samlio AI — norsk styreassistent med live datakontekst
+- OPENAI_API_KEY konfigurert i .env.local + Vercel env vars
+- Auto-seleksjon: OpenAI når API-nøkkel finnes, ellers mock-fallback
+- Verifisert: chatten bruker sanntidsdata fra Supabase i svarene
+
 ## Tester
 - **143 tester** i 7 filer, alle bestått
 - Dekker: typer, utils, export, notifications, statistikk, generalforsamling, AI
@@ -112,11 +120,10 @@ Alle tabeller har RLS med tenant isolation. Seed data for alle moduler.
 
 ### Anbefalt neste steg
 - [ ] **PWA-støtte** — manifest.json + service worker for installasjon og grunnleggende caching (~1t). Push-varsler er et eget steg.
-- [ ] **Claude API-integrasjon** — Implementer `ClaudeProvider` i `src/lib/ai/`, sett `ANTHROPIC_API_KEY`. Mock forblir fallback. Gjør chatten mye smartere.
 
 ### Øvrige forbedringer
 - [ ] **Forsikringsskadehåndtering** — Utvidelse av drift: registrer skade → koble til polise → spor status
 - [ ] **E-post-varsler** — Resend-baserte varsler for kritiske hendelser (HMS-avvik, forsikring utløper, møtepaminnel)
-- [ ] **Dokumenthåndtering** — AI-oppsummering av opplastede dokumenter (krever Claude)
+- [ ] **Dokumenthåndtering** — AI-oppsummering av opplastede dokumenter
 - [ ] **Flerspråklig** — Engelsk UI-oversettelse
 - [ ] **SUPABASE_SERVICE_ROLE_KEY** — Legg til i .env.local og Vercel for full invitasjonsflyt
