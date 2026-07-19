@@ -78,10 +78,40 @@ mitt-sameie/
 ```bash
 npm run dev     # Start dev server (http://localhost:3000)
 npm run build   # Build for production
+npm run test    # Run 143 unit tests (vitest)
 npm run lint    # Run ESLint
 ```
+
+## Deployment
+```bash
+# Deploy to production (Vercel)
+npx vercel --prod
+
+# Or push to GitHub (auto-deploy not configured — use CLI)
+git push origin main && npx vercel --prod
+```
+
+## Smoke Test (post-deploy)
+- `https://www.samlio.no/login` should return 200
+- Login with test credentials (see PROJECT_STATUS.md)
+- Dashboard should load with live data from Supabase
+- AI chat (`/ai`) should respond with contextual answers
+- Supabase project must be active (free tier pauses after 7 days inactivity)
+
+## Environment Variables
+- `NEXT_PUBLIC_SUPABASE_URL` — Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — Supabase anon key
+- `OPENAI_API_KEY` — GPT-4o-mini for AI chat/suggestions (optional, falls back to mock)
+- `RESEND_API_KEY` — Email notifications via Resend (optional)
+- `SUPABASE_SERVICE_ROLE_KEY` — Admin user management (optional)
 
 ## Multi-tenant Architecture
 - All database tables have `tenant_id` for data isolation
 - Row Level Security (RLS) in Supabase enforces tenant boundaries
 - White-label support: logo, colors, name per tenant
+
+## Cross-Project Standards
+See `/Users/waag/.agents/standards/CROSS_PROJECT_STANDARDS.md` for shared patterns across all Pendern projects.
+
+## Update Policy
+**Every PR that changes application code must include an AGENTS.md update.** Update the relevant sections when changing architecture, auth, data model, routes, or deployment.
