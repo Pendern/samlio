@@ -161,7 +161,7 @@ export function SuggestionList({ suggestions }: { suggestions: Suggestion[] }) {
         {filtered.length === 0 && suggestions.length === 0 && (
           <div className="bg-violet-950/20 border border-violet-900/20 rounded-xl p-6 text-center">
             <Sparkles className="w-8 h-8 text-violet-600 mx-auto mb-2" />
-            <p className="text-sm text-zinc-400">Klikk "Oppdater forslag" for å analysere dataene og generere AI-forslag</p>
+            <p className="text-sm text-zinc-400">Klikk &laquo;Oppdater forslag&raquo; for å analysere dataene og generere AI-forslag</p>
           </div>
         )}
         {filtered.map((s) => {
