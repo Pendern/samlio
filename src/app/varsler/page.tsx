@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { MarkReadButton, MarkAllReadButton } from "@/components/varsler/NotificationActions";
+import { SendDigestButton } from "@/components/varsler/SendDigestButton";
 
 const typeIcons: Record<string, typeof Bell> = {
   post: Megaphone,
@@ -60,7 +61,10 @@ export default async function VarslerPage() {
             {unreadCount > 0 ? `${unreadCount} uleste` : "Alle lest"}
           </p>
         </div>
-        {unreadCount > 0 && <MarkAllReadButton />}
+        <div className="flex items-center gap-2">
+          <SendDigestButton />
+          {unreadCount > 0 && <MarkAllReadButton />}
+        </div>
       </div>
 
       {/* Notifications */}
