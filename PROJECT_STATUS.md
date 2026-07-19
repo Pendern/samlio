@@ -109,21 +109,22 @@ Alle tabeller har RLS med tenant isolation. Seed data for alle moduler.
 - OpenAI-integrasjon: GPT-4o-mini provider (`src/lib/ai/openai-provider.ts`)
 - System prompt: Samlio AI — norsk styreassistent med live datakontekst
 - OPENAI_API_KEY konfigurert i .env.local + Vercel env vars
-- Auto-seleksjon: OpenAI når API-nøkkel finnes, ellers mock-fallback
-- Verifisert: chatten bruker sanntidsdata fra Supabase i svarene
+- PWA-støtte: manifest.json, service worker, ikoner (192+512), Apple Web App
+- E-postsystem: gjenbrukbar email-tjeneste (`src/lib/email.ts`)
+- Daglig digest-e-post: analyserer HMS/fakturaer/forsikring/vedlikehold
+- Instant alert-funksjon for kritiske enkelthendelser
+- "Send oppsummering"-knapp på /varsler med toast-feedback
 
 ## Tester
 - **143 tester** i 7 filer, alle bestått
 - Dekker: typer, utils, export, notifications, statistikk, generalforsamling, AI
 
-## Neste utviklingsfase — prioriterte forbedringer
-
-### Anbefalt neste steg
-- [ ] **PWA-støtte** — manifest.json + service worker for installasjon og grunnleggende caching (~1t). Push-varsler er et eget steg.
-
-### Øvrige forbedringer
-- [ ] **Forsikringsskadehåndtering** — Utvidelse av drift: registrer skade → koble til polise → spor status
-- [ ] **E-post-varsler** — Resend-baserte varsler for kritiske hendelser (HMS-avvik, forsikring utløper, møtepaminnel)
-- [ ] **Dokumenthåndtering** — AI-oppsummering av opplastede dokumenter
-- [ ] **Flerspråklig** — Engelsk UI-oversettelse
+## Oppsett som gjenstår (manuelt)
+- [ ] **RESEND_API_KEY** — Opprett konto på resend.com, verifiser samlio.no-domenet, legg til nøkkel i .env.local + Vercel
 - [ ] **SUPABASE_SERVICE_ROLE_KEY** — Legg til i .env.local og Vercel for full invitasjonsflyt
+
+## Neste utviklingsfase — prioriterte forbedringer
+- [ ] **Forsikringsskadehåndtering** — Utvidelse av drift: registrer skade → koble til polise → spor status
+- [ ] **Dokumenthåndtering** — AI-oppsummering av opplastede dokumenter via OpenAI
+- [ ] **Push-varsler** — Web Push API for sanntidsvarsler på mobil/desktop
+- [ ] **Flerspråklig** — Engelsk UI-oversettelse
