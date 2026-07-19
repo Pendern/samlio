@@ -1,17 +1,16 @@
 import type { AiProvider } from "./provider";
 import { MockAiProvider } from "./mock-provider";
+import { OpenAiProvider } from "./openai-provider";
 
 /**
  * Get the active AI provider.
- * Currently returns MockAiProvider (free, no API calls).
- * To switch to Claude: create a ClaudeProvider and return it here
- * when ANTHROPIC_API_KEY is set in env.
+ * Priority: OpenAI (if OPENAI_API_KEY set) > Mock (free fallback).
  */
 export function getAiProvider(): AiProvider {
-  // Future: check for real API key
-  // if (process.env.ANTHROPIC_API_KEY) {
-  //   return new ClaudeProvider(process.env.ANTHROPIC_API_KEY);
-  // }
+  const openaiKey = process.env.OPENAI_API_KEY;
+  if (openaiKey) {
+    return new OpenAiProvider(openaiKey);
+  }
   return new MockAiProvider();
 }
 
