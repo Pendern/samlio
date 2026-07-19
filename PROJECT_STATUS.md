@@ -114,6 +114,9 @@ Alle tabeller har RLS med tenant isolation. Seed data for alle moduler.
 - Daglig digest-e-post: analyserer HMS/fakturaer/forsikring/vedlikehold
 - Instant alert-funksjon for kritiske enkelthendelser
 - "Send oppsummering"-knapp på /varsler med toast-feedback
+- Cross-project standards: delt kunnskapsbase på Dropbox for alle prosjekter
+- AGENTS.md oppgradert med deploy, smoke test, env vars, update policy
+- Alpha-Engine: ny AGENTS.md opprettet med cross-project referanse
 
 ## Tester
 - **143 tester** i 7 filer, alle bestått
@@ -124,6 +127,14 @@ Alle tabeller har RLS med tenant isolation. Seed data for alle moduler.
 - [ ] **SUPABASE_SERVICE_ROLE_KEY** — Legg til i .env.local og Vercel for full invitasjonsflyt
 
 ## Neste utviklingsfase — prioriterte forbedringer
+
+### Fra Sendeklar-læring (høy verdi, lav innsats)
+- [ ] **Cmd+K kommandopalett** — Global hurtignavigasjon over 24 sider (~30 min)
+- [ ] **Loading skeletons** — loading.tsx for alle sider med datainnlasting (~20 min)
+- [ ] **GitHub Actions CI** — Automatisk build+test+lint på push (~10 min)
+- [ ] **Personvern + vilkår** — GDPR-sider for samlio.no (~20 min)
+
+### Funksjonelle forbedringer
 - [ ] **Forsikringsskadehåndtering** — Utvidelse av drift: registrer skade → koble til polise → spor status
 - [ ] **Dokumenthåndtering** — AI-oppsummering av opplastede dokumenter via OpenAI
 - [ ] **Push-varsler** — Web Push API for sanntidsvarsler på mobil/desktop
